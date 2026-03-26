@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  AGENT
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
+  name         String
+  passwordHash String
+  role         Role          @default(AGENT)
+  disabled     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+
+  createdTickets  Ticket[]      @relation("CreatedBy")
+  assignedTickets Ticket[]      @relation("AssignedTo")
+  comments        Comment[]
+  activityLogs    ActivityLog[]
+}
+
+model Ticket {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  requestor   String?
+  priority    Priority  @default(MEDIUM)
+  status      Status    @default(TODO)
+  resolution  String?
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdById  Int
+  createdBy    User  @relation("CreatedBy", fields: [createdById], references: [id])
+
+  assignedToId Int?
+  assignedTo   User? @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  comments     Comment[]
+  activityLog  ActivityLog[]
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  body      String
+  createdAt DateTime @default(now())
+
+  ticketId  Int
+  ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  authorId  Int
+  author    User   @relation(fields: [authorId], references: [id])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  createdAt DateTime @default(now())
+
+  ticketId       Int
+  ticket         Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  performedById  Int
+  performedBy    User   @relation(fields: [performedById], references: [id])
+}
