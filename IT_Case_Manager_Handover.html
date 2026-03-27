@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IT Case Manager — Project Handover Document</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: #fff;
+  }
+
+  /* Cover Page */
+  .cover {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: white;
+    text-align: center;
+    page-break-after: always;
+    padding: 60px;
+  }
+  .cover-icon { font-size: 72pt; margin-bottom: 24px; }
+  .cover h1 { font-size: 32pt; font-weight: 700; margin-bottom: 12px; letter-spacing: 1px; }
+  .cover h2 { font-size: 16pt; font-weight: 300; color: #a8b2d8; margin-bottom: 40px; }
+  .cover-divider { width: 80px; height: 3px; background: #6c63ff; margin: 24px auto; }
+  .cover-meta { font-size: 11pt; color: #a8b2d8; line-height: 2; }
+  .cover-meta strong { color: white; }
+  .cover-badge {
+    display: inline-block;
+    background: rgba(108, 99, 255, 0.3);
+    border: 1px solid #6c63ff;
+    border-radius: 20px;
+    padding: 6px 20px;
+    font-size: 10pt;
+    margin-top: 32px;
+    color: #c3c9e9;
+  }
+
+  /* Content */
+  .content { max-width: 900px; margin: 0 auto; padding: 40px 60px; }
+
+  /* TOC */
+  .toc { page-break-after: always; }
+  .toc h2 { font-size: 18pt; color: #0f3460; border-bottom: 3px solid #6c63ff; padding-bottom: 8px; margin-bottom: 24px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { padding: 5px 0; font-size: 11pt; color: #333; }
+  .toc li span { color: #6c63ff; font-weight: 600; margin-right: 8px; }
+  .toc .toc-sub { padding-left: 24px; margin-top: 4px; }
+  .toc .toc-sub li { font-size: 10pt; color: #555; padding: 2px 0; }
+
+  /* Section headers */
+  .section { page-break-inside: avoid; margin-bottom: 36px; }
+  .section-break { page-break-before: always; }
+
+  h2.section-title {
+    font-size: 16pt;
+    color: white;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    padding: 12px 20px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    margin-top: 32px;
+  }
+  h2.section-title span {
+    background: #6c63ff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11pt;
+    margin-right: 10px;
+  }
+
+  h3 {
+    font-size: 12pt;
+    color: #0f3460;
+    margin: 20px 0 10px 0;
+    padding-left: 10px;
+    border-left: 4px solid #6c63ff;
+  }
+
+  h4 {
+    font-size: 11pt;
+    color: #333;
+    margin: 14px 0 6px 0;
+    font-weight: 600;
+  }
+
+  p { margin-bottom: 10px; color: #333; }
+
+  ul, ol { padding-left: 24px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; color: #333; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px 0;
+    font-size: 10pt;
+  }
+  thead tr {
+    background: #0f3460;
+    color: white;
+  }
+  thead th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  tbody tr:nth-child(even) { background: #f4f6fb; }
+  tbody tr:hover { background: #eef0fa; }
+  tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e0e4ef;
+    color: #333;
+  }
+
+  /* Code blocks */
+  pre {
+    background: #1a1a2e;
+    color: #a8d8ea;
+    padding: 16px 20px;
+    border-radius: 6px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9pt;
+    overflow-x: auto;
+    margin: 12px 0;
+    line-height: 1.5;
+  }
+  code {
+    background: #eef0fa;
+    color: #0f3460;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9.5pt;
+  }
+  pre code { background: none; color: #a8d8ea; padding: 0; }
+
+  /* Info boxes */
+  .info-box {
+    background: #eef7ff;
+    border-left: 4px solid #3a86ff;
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 12px 0;
+    font-size: 10pt;
+    color: #1a3a5c;
+  }
+  .warning-box {
+    background: #fff8ee;
+    border-left: 4px solid #f97316;
+    padding: 12px 16px;
+    border-radius: 0 6px 6px 0;
+    margin: 12px 0;
+    font-size: 10pt;
+    color: #7c3a00;
+  }
+
+  /* Login box */
+  .login-box {
+    background: #1a1a2e;
+    border-radius: 10px;
+    padding: 24px 32px;
+    color: white;
+    max-width: 360px;
+    margin: 16px 0;
+  }
+  .login-box .field { margin-bottom: 14px; }
+  .login-box .label { font-size: 9pt; color: #a8b2d8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .login-box .value { font-size: 12pt; font-weight: 600; color: #6c63ff; }
+
+  /* Architecture diagram */
+  .arch-box {
+    background: #f8f9ff;
+    border: 2px solid #e0e4ef;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 12px 0;
+    font-family: 'Consolas', monospace;
+    font-size: 9.5pt;
+    color: #1a1a2e;
+    line-height: 1.8;
+  }
+
+  /* Print */
+  @media print {
+    body { font-size: 10pt; }
+    .cover { height: 100vh; }
+    .no-print { display: none; }
+    h2.section-title { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead tr { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .login-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* Print button */
+  .print-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #6c63ff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 11pt;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(108,99,255,0.4);
+    z-index: 1000;
+  }
+  .print-btn:hover { background: #5a52d5; }
+
+  hr { border: none; border-top: 1px solid #e0e4ef; margin: 24px 0; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Save as PDF</button>
+
+<!-- COVER PAGE -->
+<div class="cover">
+  <div class="cover-icon">🎫</div>
+  <h1>IT Case Manager</h1>
+  <h2>Project Handover Document</h2>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <div><strong>Project:</strong> Internal IT Case Management System</div>
+    <div><strong>Repository:</strong> github.com/aivarya/Case_Management</div>
+    <div><strong>Version:</strong> 1.0</div>
+    <div><strong>Date:</strong> March 2026</div>
+    <div><strong>Prepared by:</strong> Sreyas Sambhu</div>
+  </div>
+  <div class="cover-badge">Confidential — Internal Use Only</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><span>1.</span> Project Overview</li>
+      <li><span>2.</span> Technology Stack
+        <ul class="toc-sub">
+          <li>Frontend, Backend, Infrastructure</li>
+        </ul>
+      </li>
+      <li><span>3.</span> Project Structure</li>
+      <li><span>4.</span> Database Schema
+        <ul class="toc-sub">
+          <li>User, Ticket, Comment, ActivityLog</li>
+        </ul>
+      </li>
+      <li><span>5.</span> Backend API Reference
+        <ul class="toc-sub">
+          <li>Authentication, Tickets, Users</li>
+        </ul>
+      </li>
+      <li><span>6.</span> Frontend Pages &amp; Components
+        <ul class="toc-sub">
+          <li>Login, Dashboard, Kanban, Calendar, List View, Admin Panel</li>
+          <li>Navbar, TicketCard, TicketModal, CommentThread</li>
+        </ul>
+      </li>
+      <li><span>7.</span> Authentication &amp; Authorization</li>
+      <li><span>8.</span> Key Features</li>
+      <li><span>9.</span> Business Logic</li>
+      <li><span>10.</span> Docker &amp; Deployment</li>
+      <li><span>11.</span> Environment Variables</li>
+      <li><span>12.</span> Running the App</li>
+      <li><span>13.</span> Default Login Credentials</li>
+    </ol>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>1</span> Project Overview</h2>
+    <p>The IT Case Manager is a full-stack web application built for internal IT departments to systematically manage support cases and tasks. It is designed to replace informal tracking methods (email, spreadsheets) with a structured, role-based ticketing system similar to Jira or Monday.com.</p>
+    <h3>What It Does</h3>
+    <ul>
+      <li>Create, assign, and track IT support cases (tickets) with priority levels and due dates</li>
+      <li>Visualise the team's workload across multiple views: Kanban, Calendar, and List</li>
+      <li>Enforce resolution documentation before a ticket can be closed</li>
+      <li>Manage team members and control access through role-based permissions</li>
+      <li>Export ticket reports to CSV and Excel for management reporting</li>
+      <li>Track all activity, status changes, and comments per ticket</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="section">
+    <h2 class="section-title"><span>2</span> Technology Stack</h2>
+    <h3>Frontend</h3>
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>React</td><td>18.3.1</td><td>UI framework</td></tr>
+        <tr><td>Vite</td><td>5.3.1</td><td>Build tool and development server</td></tr>
+        <tr><td>React Router DOM</td><td>6.24.0</td><td>Client-side page routing</td></tr>
+        <tr><td>@hello-pangea/dnd</td><td>16.6.0</td><td>Drag-and-drop for the Kanban board</td></tr>
+        <tr><td>react-big-calendar</td><td>1.13.1</td><td>Calendar view</td></tr>
+        <tr><td>date-fns</td><td>3.6.0</td><td>Date formatting utilities</td></tr>
+      </tbody>
+    </table>
+    <h3>Backend</h3>
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Node.js</td><td>18+</td><td>JavaScript runtime</td></tr>
+        <tr><td>Express</td><td>4.19.2</td><td>Web server framework</td></tr>
+        <tr><td>Prisma</td><td>5.14.0</td><td>ORM / database client</td></tr>
+        <tr><td>PostgreSQL</td><td>16</td><td>Relational database</td></tr>
+        <tr><td>bcryptjs</td><td>2.4.3</td><td>Password hashing</td></tr>
+        <tr><td>express-session</td><td>1.18.0</td><td>Session-based authentication</td></tr>
+        <tr><td>CORS</td><td>2.8.5</td><td>Cross-origin request handling</td></tr>
+      </tbody>
+    </table>
+    <h3>Infrastructure</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Docker</td><td>Containerises all services</td></tr>
+        <tr><td>Docker Compose</td><td>Orchestrates multi-container setup</td></tr>
+        <tr><td>Nginx</td><td>Serves the frontend and proxies API requests to backend</td></tr>
+        <tr><td>GitHub</td><td>Source code repository (github.com/aivarya/Case_Management)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>3</span> Project Structure</h2>
+    <pre>case-management-app/
+├── docker-compose.yml          # Orchestrates all 3 containers
+├── .gitignore
+├── .env.example
+├── README.md
+├── DOCUMENTATION.md
+│
+├── backend/
+│   ├── server.js               # Express app entry point
+│   ├── seed.js                 # Creates default admin user
+│   ├── package.json
+│   ├── Dockerfile
+│   ├── .env                    # NOT in git — must be created manually
+│   ├── middleware/
+│   │   └── auth.js             # requireAuth / requireAdmin middleware
+│   ├── routes/
+│   │   ├── auth.js             # Login, logout, me, change password
+│   │   ├── tickets.js          # Ticket CRUD operations
+│   │   ├── users.js            # User management (admin)
+│   │   └── comments.js         # Ticket comments
+│   └── prisma/
+│       ├── schema.prisma       # Database models definition
+│       └── migrations/         # SQL migration history
+│
+└── frontend/
+    ├── package.json
+    ├── vite.config.js
+    ├── Dockerfile
+    ├── nginx.conf              # Nginx config and API proxy rules
+    └── src/
+        ├── App.jsx             # Router + AuthContext
+        ├── api.js              # Centralised API client
+        ├── pages/
+        │   ├── Login.jsx
+        │   ├── Dashboard.jsx
+        │   ├── KanbanBoard.jsx
+        │   ├── CalendarView.jsx
+        │   ├── ListView.jsx
+        │   ├── AdminPanel.jsx
+        │   └── CreateTicketForm.jsx
+        ├── components/
+        │   ├── Navbar.jsx
+        │   ├── TicketCard.jsx
+        │   ├── TicketModal.jsx
+        │   └── CommentThread.jsx
+        └── styles/
+            └── global.css      # Dark theme global styles</pre>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="section">
+    <h2 class="section-title"><span>4</span> Database Schema</h2>
+    <h3>User</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>Int</td><td>Auto-increment primary key</td></tr>
+        <tr><td>email</td><td>String</td><td>Unique — used for login</td></tr>
+        <tr><td>name</td><td>String</td><td>Display name</td></tr>
+        <tr><td>passwordHash</td><td>String</td><td>bcrypt hashed password</td></tr>
+        <tr><td>role</td><td>Enum</td><td>ADMIN or AGENT</td></tr>
+        <tr><td>disabled</td><td>Boolean</td><td>Default false — blocks login when true</td></tr>
+        <tr><td>createdAt</td><td>DateTime</td><td>Auto-set on creation</td></tr>
+      </tbody>
+    </table>
+    <h3>Ticket</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>Int</td><td>Auto-increment — used as Ticket ID</td></tr>
+        <tr><td>title</td><td>String</td><td>Required</td></tr>
+        <tr><td>description</td><td>String</td><td>Optional</td></tr>
+        <tr><td>requestor</td><td>String</td><td>Who raised the request</td></tr>
+        <tr><td>priority</td><td>Enum</td><td>LOW, MEDIUM, HIGH, CRITICAL</td></tr>
+        <tr><td>status</td><td>Enum</td><td>TODO, IN_PROGRESS, IN_REVIEW, DONE</td></tr>
+        <tr><td>resolution</td><td>String</td><td>Required when status = DONE</td></tr>
+        <tr><td>dueDate</td><td>DateTime</td><td>Optional</td></tr>
+        <tr><td>createdAt</td><td>DateTime</td><td>System-generated on creation</td></tr>
+        <tr><td>updatedAt</td><td>DateTime</td><td>Auto-updated on every save</td></tr>
+        <tr><td>createdById</td><td>Int</td><td>FK → User</td></tr>
+        <tr><td>assignedToId</td><td>Int</td><td>FK → User (nullable — can be unassigned)</td></tr>
+      </tbody>
+    </table>
+    <h3>Comment</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>Int</td><td>Auto-increment primary key</td></tr>
+        <tr><td>body</td><td>String</td><td>Comment text</td></tr>
+        <tr><td>createdAt</td><td>DateTime</td><td>Auto-set</td></tr>
+        <tr><td>ticketId</td><td>Int</td><td>FK → Ticket (cascade delete)</td></tr>
+        <tr><td>authorId</td><td>Int</td><td>FK → User</td></tr>
+      </tbody>
+    </table>
+    <h3>ActivityLog</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>Int</td><td>Auto-increment primary key</td></tr>
+        <tr><td>action</td><td>String</td><td>e.g. "Status changed from TODO to DONE"</td></tr>
+        <tr><td>createdAt</td><td>DateTime</td><td>Auto-set</td></tr>
+        <tr><td>ticketId</td><td>Int</td><td>FK → Ticket (cascade delete)</td></tr>
+        <tr><td>performedById</td><td>Int</td><td>FK → User</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>5</span> Backend API Reference</h2>
+    <h3>Authentication — /api/auth</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td>/login</td><td>Public</td><td>Login with email + password</td></tr>
+        <tr><td>POST</td><td>/logout</td><td>Auth</td><td>Destroy session and log out</td></tr>
+        <tr><td>GET</td><td>/me</td><td>Auth</td><td>Get current authenticated user</td></tr>
+        <tr><td>PATCH</td><td>/password</td><td>Auth</td><td>Change own password (requires current password)</td></tr>
+      </tbody>
+    </table>
+    <h3>Tickets — /api/tickets</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td>/</td><td>Auth</td><td>List tickets — Admins see all, Agents see assigned only</td></tr>
+        <tr><td>POST</td><td>/</td><td>Auth</td><td>Create a new ticket</td></tr>
+        <tr><td>GET</td><td>/:id</td><td>Auth</td><td>Get ticket detail with comments and activity log</td></tr>
+        <tr><td>PATCH</td><td>/:id</td><td>Auth</td><td>Update ticket fields</td></tr>
+        <tr><td>DELETE</td><td>/:id</td><td>Admin</td><td>Delete a ticket</td></tr>
+        <tr><td>POST</td><td>/:id/comments</td><td>Auth</td><td>Add a comment to a ticket</td></tr>
+      </tbody>
+    </table>
+    <h3>Users — /api/users</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td>/</td><td>Auth</td><td>List users — Admins: full details; Agents: name/email only</td></tr>
+        <tr><td>POST</td><td>/</td><td>Admin</td><td>Create a new user</td></tr>
+        <tr><td>PATCH</td><td>/:id/disable</td><td>Admin</td><td>Toggle user disabled status</td></tr>
+        <tr><td>DELETE</td><td>/:id</td><td>Admin</td><td>Delete user with cascading data cleanup</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="section">
+    <h2 class="section-title"><span>6</span> Frontend Pages &amp; Components</h2>
+    <h3>Pages</h3>
+    <h4>Login</h4>
+    <ul>
+      <li>Email and password form with error handling</li>
+      <li>Redirects to Dashboard on successful login</li>
+    </ul>
+    <h4>Dashboard</h4>
+    <ul>
+      <li>Summary cards: Open Tickets, Assigned to Me, Resolved, Critical Open</li>
+      <li>Recently Updated Tickets and Assigned to Me sections</li>
+      <li>New Ticket quick-create button</li>
+    </ul>
+    <h4>Kanban Board</h4>
+    <ul>
+      <li>Four columns: To Do, In Progress, In Review, Done</li>
+      <li>Drag-and-drop tickets between columns</li>
+      <li>Ticket count badges per column</li>
+      <li>Click any ticket to open the full detail modal</li>
+    </ul>
+    <h4>Calendar View</h4>
+    <ul>
+      <li>Monthly calendar showing tickets on their due dates</li>
+      <li>Colour-coded by priority: Green (Low), Blue (Medium), Orange (High), Red (Critical)</li>
+      <li>Supports Month, Week, and Agenda views</li>
+    </ul>
+    <h4>List View</h4>
+    <ul>
+      <li>Sortable table: ID, Title, Requestor, Priority, Status, Assigned To, Created, Due Date, Resolution</li>
+      <li>Search filter across title, requestor, and assignee</li>
+      <li>Filter by Status and Priority</li>
+      <li>Export filtered list to CSV or Excel</li>
+      <li>Overdue tickets highlighted in red</li>
+    </ul>
+    <h4>Admin Panel</h4>
+    <ul>
+      <li>Team members table with Name, Email, Role, Status, Joined date</li>
+      <li>Enable/Disable and Delete actions per user</li>
+      <li>Disabled users shown dimmed with a Disabled badge (not hidden)</li>
+      <li>Add Team Member form with name, email, temporary password, and role</li>
+    </ul>
+    <h3>Components</h3>
+    <h4>Navbar</h4>
+    <ul>
+      <li>Navigation links: Dashboard, Kanban, Calendar, List, Admin (Admin only)</li>
+      <li>Displays logged-in user name and role badge</li>
+      <li>Change Password button (available to all users)</li>
+      <li>Logout button</li>
+    </ul>
+    <h4>TicketModal</h4>
+    <ul>
+      <li>Full ticket editor: Title, Requestor, Description, Priority, Status, Assigned To, Due Date</li>
+      <li>Resolution field appears and is required when Status = DONE</li>
+      <li>Ticket ID and Creation Date shown as read-only system fields</li>
+      <li>Disabled users excluded from the Assigned To dropdown</li>
+      <li>Automatically closes after successful save or delete</li>
+    </ul>
+    <h4>CommentThread</h4>
+    <ul>
+      <li>Displays all comments with author and timestamp</li>
+      <li>Activity log showing all status change history</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>7</span> Authentication &amp; Authorization</h2>
+    <h3>How It Works</h3>
+    <ul>
+      <li>Session-based authentication using <code>express-session</code></li>
+      <li>Passwords hashed with <code>bcryptjs</code> (12 salt rounds)</li>
+      <li>Sessions persist for 7 days</li>
+      <li>All API requests automatically send session cookies</li>
+      <li>Unauthenticated requests are redirected to the login page</li>
+    </ul>
+    <h3>User Roles</h3>
+    <table>
+      <thead><tr><th>Role</th><th>Capabilities</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ADMIN</strong></td><td>See all tickets, manage users, access Admin Panel, delete tickets and users</td></tr>
+        <tr><td><strong>AGENT</strong></td><td>See only assigned tickets, update ticket status, add comments, change own password</td></tr>
+      </tbody>
+    </table>
+    <h3>Security Rules</h3>
+    <ul>
+      <li>Disabled users receive a 403 error on login — cannot access the system</li>
+      <li>Agents cannot access the <code>/admin</code> route — redirected to Dashboard</li>
+      <li>Agents cannot call admin-only API endpoints — receive 403 response</li>
+      <li>Users cannot disable or delete their own account</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="section">
+    <h2 class="section-title"><span>8</span> Key Features</h2>
+    <h3>Ticket Management</h3>
+    <ul>
+      <li>Create tickets with Title, Requestor, Description, Priority, Assigned To, Due Date</li>
+      <li>System auto-generates Ticket ID and Creation Date</li>
+      <li>Resolution field mandatory before a ticket can be marked Done</li>
+      <li>Status workflow: <strong>To Do → In Progress → In Review → Done</strong></li>
+    </ul>
+    <h3>Multiple Views</h3>
+    <ul>
+      <li><strong>Dashboard</strong> — summary stats and recent activity at a glance</li>
+      <li><strong>Kanban Board</strong> — drag-and-drop workflow management</li>
+      <li><strong>Calendar View</strong> — timeline view for deadline management</li>
+      <li><strong>List View</strong> — detailed table with search, filters, sorting, and export</li>
+    </ul>
+    <h3>Export</h3>
+    <ul>
+      <li>Export current filtered ticket list to CSV</li>
+      <li>Export current filtered ticket list to Excel (.xls)</li>
+      <li>Files automatically named with today's date</li>
+    </ul>
+    <h3>Team Management (Admin)</h3>
+    <ul>
+      <li>Create team members with a temporary password</li>
+      <li>Assign roles: Admin or Agent</li>
+      <li>Disable users — blocks login and hides from assignment, but preserves all data</li>
+      <li>Re-enable disabled users at any time</li>
+      <li>Delete users — all related tickets are safely reassigned</li>
+    </ul>
+    <h3>Collaboration</h3>
+    <ul>
+      <li>Post comments on any ticket</li>
+      <li>Automatic activity log records all status changes with timestamp and actor</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 9 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>9</span> Business Logic</h2>
+    <h3>Ticket Visibility by Role</h3>
+    <div class="arch-box">ADMIN  →  sees ALL tickets in the system
+AGENT  →  sees ONLY tickets assigned to them</div>
+    <h3>Resolution Enforcement</h3>
+    <ul>
+      <li>The Resolution field only appears when Status is set to DONE</li>
+      <li>Resolution text is mandatory — save is blocked on both client and server if empty</li>
+      <li>Ensures every closed ticket has a documented resolution before it is closed</li>
+    </ul>
+    <h3>User Deletion Cascade</h3>
+    <p>When an admin deletes a user, the following cleanup steps run in order:</p>
+    <ol>
+      <li>All tickets <strong>assigned to</strong> the user are unassigned</li>
+      <li>All tickets <strong>created by</strong> the user are reassigned to the deleting admin</li>
+      <li>All <strong>comments</strong> by the user are deleted</li>
+      <li>All <strong>activity log</strong> entries by the user are deleted</li>
+      <li>The user record is deleted</li>
+    </ol>
+    <h3>Assignment Dropdown Rules</h3>
+    <ul>
+      <li>Only active (non-disabled) users appear in the Assigned To dropdown</li>
+      <li>Applies to both Create Ticket and Edit Ticket forms</li>
+      <li>Tickets can be left unassigned</li>
+    </ul>
+    <h3>Overdue Detection</h3>
+    <ul>
+      <li>Calculated client-side: <code>dueDate &lt; today AND status !== DONE</code></li>
+      <li>Overdue tickets highlighted in red in List View</li>
+      <li>Warning icon shown on Kanban ticket cards</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 10 -->
+  <div class="section">
+    <h2 class="section-title"><span>10</span> Docker &amp; Deployment</h2>
+    <h3>System Architecture</h3>
+    <div class="arch-box">Browser
+  └── http://localhost (port 80)
+        └── Nginx (frontend container)
+              ├── /         → serves React SPA (static files)
+              └── /api/*    → proxied to backend:3001
+                                └── Express + Prisma (backend container)
+                                      └── PostgreSQL 16 (db container)</div>
+    <h3>Docker Compose Services</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Image</th><th>Port</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>db</td><td>postgres:16</td><td>Internal only</td><td>PostgreSQL database with persistent volume</td></tr>
+        <tr><td>backend</td><td>Custom build</td><td>Internal (3001)</td><td>Node.js + Express API server</td></tr>
+        <tr><td>frontend</td><td>Custom build</td><td>80:80</td><td>Nginx serving the React app</td></tr>
+      </tbody>
+    </table>
+    <h3>Backend Dockerfile Startup Sequence</h3>
+    <ol>
+      <li>Base image: <code>node:18-slim</code> (Debian — required for Prisma SSL compatibility)</li>
+      <li>Installs <code>openssl</code> and <code>postgresql-client</code></li>
+      <li>Copies code and runs <code>npm install</code></li>
+      <li>Generates Prisma client</li>
+      <li>On container start: waits for PostgreSQL to be ready</li>
+      <li>Runs <code>prisma migrate deploy</code> to apply schema migrations</li>
+      <li>Runs <code>node seed.js</code> to create default admin if not exists</li>
+      <li>Starts <code>node server.js</code></li>
+    </ol>
+    <h3>Commands</h3>
+    <table>
+      <thead><tr><th>Command</th><th>When to Use</th></tr></thead>
+      <tbody>
+        <tr><td><code>docker-compose up --build</code></td><td>First run or after any code changes</td></tr>
+        <tr><td><code>docker-compose up</code></td><td>Normal start (no code changes)</td></tr>
+        <tr><td><code>docker-compose down</code></td><td>Stop all containers</td></tr>
+        <tr><td><code>docker-compose logs backend</code></td><td>View backend logs for debugging</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECTION 11 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>11</span> Environment Variables</h2>
+    <h3>Backend — backend/.env</h3>
+    <div class="warning-box">⚠️ This file is excluded from the git repository. It must be created manually on every machine where the app is deployed.</div>
+    <pre>DATABASE_URL="postgresql://postgres:secret@localhost:5432/casemgmt"
+SESSION_SECRET="change-this-to-a-random-string"
+PORT=3001</pre>
+    <table>
+      <thead><tr><th>Variable</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>DATABASE_URL</td><td>PostgreSQL connection string. Use <code>db</code> as host when running in Docker</td></tr>
+        <tr><td>SESSION_SECRET</td><td>Secret key for signing session cookies — change this in production</td></tr>
+        <tr><td>PORT</td><td>Port the backend listens on (default: 3001)</td></tr>
+      </tbody>
+    </table>
+    <h3>Frontend</h3>
+    <pre>VITE_API_URL="/api"    # Optional — defaults to /api if not set</pre>
+  </div>
+
+  <!-- SECTION 12 -->
+  <div class="section">
+    <h2 class="section-title"><span>12</span> Running the App</h2>
+    <h3>With Docker (Recommended)</h3>
+    <div class="info-box">Requirements: Git and Docker Desktop installed</div>
+    <table>
+      <thead><tr><th>#</th><th>Command</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>git clone https://github.com/aivarya/Case_Management.git</code></td><td>Download the code</td></tr>
+        <tr><td>2</td><td><code>cd Case_Management</code></td><td>Enter project folder</td></tr>
+        <tr><td>3</td><td>Ensure Docker Desktop is running</td><td>Required before next step</td></tr>
+        <tr><td>4</td><td><code>docker-compose up --build</code></td><td>Build and start all containers</td></tr>
+        <tr><td>5</td><td>Wait ~3–5 minutes on first run</td><td>Downloads images, builds, migrates DB</td></tr>
+        <tr><td>6</td><td>Open <code>http://localhost</code> in browser</td><td>Access the application</td></tr>
+      </tbody>
+    </table>
+    <h3>Without Docker (Development Mode)</h3>
+    <div class="info-box">Requirements: Node.js 18+, PostgreSQL running locally</div>
+    <pre># Terminal 1 — Backend
+cd backend
+npm install
+npx prisma migrate deploy
+node seed.js
+node server.js
+
+# Terminal 2 — Frontend
+cd frontend
+npm install
+npm run dev</pre>
+    <p>Open browser: <code>http://localhost:5173</code></p>
+  </div>
+
+  <!-- SECTION 13 -->
+  <div class="section">
+    <h2 class="section-title"><span>13</span> Default Login Credentials</h2>
+    <div class="login-box">
+      <div class="field">
+        <div class="label">URL</div>
+        <div class="value">http://localhost</div>
+      </div>
+      <div class="field">
+        <div class="label">Email</div>
+        <div class="value">admin@company.com</div>
+      </div>
+      <div class="field">
+        <div class="label">Password</div>
+        <div class="value">admin123</div>
+      </div>
+      <div class="field">
+        <div class="label">Role</div>
+        <div class="value">ADMIN</div>
+      </div>
+    </div>
+    <div class="warning-box">⚠️ Change the admin password immediately after first login. Use the <strong>Password</strong> button in the top navigation bar.</div>
+    <hr>
+    <p style="text-align:center; color:#888; font-size:9pt; margin-top:32px;">
+      IT Case Manager — Internal Project Documentation &nbsp;|&nbsp; github.com/aivarya/Case_Management &nbsp;|&nbsp; March 2026
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
