@@ -1,6 +1,6 @@
-FROM node:18-alpine
+FROM node:18-slim
 WORKDIR /app
-RUN apk add --no-cache postgresql-client
+RUN apt-get update -y && apt-get install -y openssl postgresql-client && rm -rf /var/lib/apt/lists/*
 COPY package*.json ./
 RUN npm install
 COPY . .
