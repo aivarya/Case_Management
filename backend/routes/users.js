@@ -7,11 +7,12 @@ const router = express.Router();
 router.get('/', requireAuth, async (req, res) => {
   try {
     // Agents get a minimal list for assignment; admins get full details
-    const select = req.session.role === 'ADMIN'
+    const isAdmin = req.session.role === 'ADMIN';
+    const select = isAdmin
       ? { id: true, name: true, email: true, role: true, disabled: true, createdAt: true }
       : { id: true, name: true, email: true };
     const users = await req.prisma.user.findMany({
-      where: { disabled: false },
+      where: isAdmin ? {} : { disabled: false },
       select,
       orderBy: { name: 'asc' },
     });
