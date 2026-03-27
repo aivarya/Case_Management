@@ -144,7 +144,7 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
                   <label className="form-label">Assigned To</label>
                   <select className="select" value={form.assignedToId || ''} onChange={e => setForm(f => ({ ...f, assignedToId: e.target.value }))}>
                     <option value="">Unassigned</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                    {users.filter(u => !u.disabled).map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                   </select>
                 </div>
 
