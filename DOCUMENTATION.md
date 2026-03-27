@@ -41,6 +41,7 @@ The IT Case Manager is a web-based ticketing system that allows IT teams to:
 | React | 18.3.1 | UI framework |
 | Vite | 5.3.1 | Build tool and dev server |
 | React Router DOM | 6.24.0 | Client-side routing |
+| Chart.js | 4.4.1 | Dashboard charts (donut, line, bar) |
 | @hello-pangea/dnd | 16.6.0 | Drag-and-drop (Kanban board) |
 | react-big-calendar | 1.13.1 | Calendar view |
 | date-fns | 3.6.0 | Date formatting utilities |
@@ -215,8 +216,29 @@ case-management-app/
 #### Dashboard
 - Summary cards: Open Tickets, Assigned to Me, Resolved, Critical Open
 - Recently Updated Tickets list
-- Assigned to Me section
 - New Ticket button
+- Role-based Chart.js charts (see Chart.js Charts section below)
+
+#### Dashboard — Chart.js Charts
+
+Charts are role-based and rendered using Chart.js 4.4.1 (`chart.js/auto`). All charts use `responsive: true`, `maintainAspectRatio: false`, Chart.js legend disabled, and a custom HTML legend rendered above each canvas.
+
+**Agent view** — right panel shows two charts stacked vertically:
+
+| Chart | Type | Data | Colors |
+|---|---|---|---|
+| Tickets by Priority | Donut (cutout 35%) | Count of tickets grouped by priority | Critical #E24B4A, High #EF9F27, Medium #378ADD, Low #639922 |
+| Ticket Trend — Last 7 Days | Line (fill, tension 0.4) | Daily count of Opened vs Resolved tickets over the past 7 days | Opened #378ADD, Resolved #1D9E75 |
+
+**Admin view** — right panel shows the same two charts in a 2-column grid; an additional full-width chart appears below:
+
+| Chart | Type | Data | Colors |
+|---|---|---|---|
+| Agent Performance — Assigned vs Resolved | Grouped Bar | Per-agent count of assigned tickets vs tickets resolved (status = DONE) | Assigned #378ADD, Resolved #1D9E75 |
+
+Chart data is derived live from the tickets API response. The agent performance chart is built by aggregating the `assignedTo` field across all tickets — no extra API call is needed.
+
+---
 
 #### Kanban Board
 - Four columns: To Do, In Progress, In Review, Done
@@ -315,10 +337,16 @@ case-management-app/
 - Status workflow: To Do → In Progress → In Review → Done
 
 ### Multiple Views
-- **Dashboard** — quick overview with stats and recent activity
+- **Dashboard** — quick overview with stats, recent activity, and role-based charts
 - **Kanban Board** — visual drag-and-drop workflow management
 - **Calendar View** — timeline view for deadline management
 - **List View** — detailed table view with search, filters, and export
+
+### Dashboard Analytics (Chart.js)
+- **Tickets by Priority** (donut) — visual breakdown of ticket volume by priority level
+- **Ticket Trend — Last 7 Days** (line) — daily opened vs resolved tickets over the past week
+- **Agent Performance** (grouped bar, Admin only) — per-agent count of assigned vs resolved tickets
+- Charts are role-aware: Agents see priority + trend; Admins see all three including the agent performance chart
 
 ### Export
 - Export current filtered list to CSV
