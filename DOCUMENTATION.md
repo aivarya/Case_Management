@@ -410,28 +410,29 @@ When an admin deletes a user, the following happens in order:
 ### Architecture
 ```
 Browser
-  └── https://alaccad.it (port 443) or http://alaccad.it (port 80 → redirects to 443)
-        └── Nginx reverse proxy (nginx container) — handles SSL termination
-              ├── /api/ → proxied directly to backend:3001
-              └── /    → proxied to frontend container (port 80)
+  └── https://alaccad.it (port 443)
+        └── pfSense — SSL termination + DNS forwarding (alaccad.it → 10.31.10.50)
+              └── http://10.31.10.50:80
+                    └── Nginx (frontend container) — port 80:80
                           ├── / → serves React SPA (static files)
                           └── /api → proxied to backend:3001
                                       └── Express + Prisma
                                             └── PostgreSQL (db container)
 ```
 
-**SSL Certificates** are stored in `./certs/` (mounted into the nginx container):
+**SSL is handled by pfSense** (self-signed certificate). The Docker stack runs plain HTTP on port 80 — pfSense terminates HTTPS and forwards to port 80 on the host.
+
+**SSL Certificates** are stored in `./certs/` (used by pfSense, not by Docker):
 - `alaccad.crt` — SSL certificate
 - `alaccad.key` — Private key
-- `alaccad.pfx` — PFX bundle (for IIS/Windows use)
+- `alaccad.pfx` — PFX bundle
 
 ### docker-compose.yml Services
 | Service | Image | Port | Description |
 |---|---|---|---|
 | db | postgres:16 | internal | PostgreSQL database |
 | backend | custom build | internal (3001) | Node.js + Express API |
-| frontend | custom build | internal (80) | Nginx serving React SPA |
-| nginx | nginx:alpine | 80:80, 443:443 | Reverse proxy + SSL termination |
+| frontend | custom build | 80:80 | Nginx serving React app + API proxy |
 
 ### backend/Dockerfile
 1. Base: `node:18-slim` (Debian — required for Prisma SSL compatibility)
