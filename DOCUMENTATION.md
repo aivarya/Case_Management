@@ -410,29 +410,37 @@ When an admin deletes a user, the following happens in order:
 ### Architecture
 ```
 Browser
-  └── https://alaccad.it (port 443)
-        └── pfSense — SSL termination + DNS forwarding (alaccad.it → 10.31.10.50)
-              └── http://10.31.10.50:80
-                    └── Nginx (frontend container) — port 80:80
-                          ├── / → serves React SPA (static files)
-                          └── /api → proxied to backend:3001
-                                      └── Express + Prisma
-                                            └── PostgreSQL (db container)
+  └── https://tickets.organic-erp.com (port 443)
+        └── AWS Route 53 / DNS — A record (tickets.organic-erp.com → Elastic IP)
+              └── EC2 Instance (Ubuntu 24.04) — Elastic IP
+                    └── Nginx container — ports 80:80, 443:443
+                          ├── Port 80 → 301 redirect to HTTPS
+                          ├── Port 443 → SSL terminated here (Let's Encrypt)
+                          ├── / → proxied to frontend container (port 80)
+                          │         └── React SPA (static files)
+                          └── /api/ → proxied to backend container (port 3001)
+                                        └── Express + Prisma
+                                              └── PostgreSQL (db container)
 ```
 
-**SSL is handled by pfSense** (self-signed certificate). The Docker stack runs plain HTTP on port 80 — pfSense terminates HTTPS and forwards to port 80 on the host.
+**SSL is handled by the Nginx Docker container** using a Let's Encrypt certificate issued via Certbot. Certificates are stored on the EC2 host at `/etc/letsencrypt/` and mounted read-only into the nginx container.
 
-**SSL Certificates** are stored in `./certs/` (used by pfSense, not by Docker):
-- `alaccad.crt` — SSL certificate
-- `alaccad.key` — Private key
-- `alaccad.pfx` — PFX bundle
+### AWS Infrastructure
+| Resource | Details |
+|---|---|
+| EC2 Instance | Ubuntu 24.04 LTS, t3.small (recommended) |
+| Elastic IP | Static public IP — attached to EC2 instance |
+| Security Group | Inbound: 22 (SSH), 80 (HTTP), 443 (HTTPS) |
+| SSL Certificate | Let's Encrypt — free, auto-renewable, trusted |
+| Domain | tickets.organic-erp.com → Elastic IP (DNS A record) |
 
 ### docker-compose.yml Services
 | Service | Image | Port | Description |
 |---|---|---|---|
 | db | postgres:16 | internal | PostgreSQL database |
 | backend | custom build | internal (3001) | Node.js + Express API |
-| frontend | custom build | 80:80 | Nginx serving React app + API proxy |
+| frontend | custom build | internal (80) | Nginx serving React SPA |
+| nginx | nginx:alpine | 80:80, 443:443 | Reverse proxy + SSL termination |
 
 ### backend/Dockerfile
 1. Base: `node:18-slim` (Debian — required for Prisma SSL compatibility)
@@ -449,13 +457,19 @@ Multi-stage build:
 ### Starting the App
 ```bash
 # First time or after code changes
-docker-compose up --build
+docker compose up --build -d
 
 # Subsequent starts
-docker-compose up
+docker compose up -d
 
 # Stop
-docker-compose down
+docker compose down
+
+# View logs
+docker compose logs -f
+
+# Check container status
+docker compose ps
 ```
 
 ---
@@ -464,11 +478,11 @@ docker-compose down
 
 ### Backend — `backend/.env`
 ```
-DATABASE_URL="postgresql://postgres:secret@localhost:5432/casemgmt"
-SESSION_SECRET="change-this-to-a-random-string"
+DATABASE_URL="postgresql://postgres:secret@db:5432/casemgmt"
+SESSION_SECRET="replace-with-a-long-random-string"
 PORT=3001
 ```
-> This file is excluded from git. Create it manually on each machine.
+> This file is excluded from git. Create it manually on the server after cloning.
 
 ### Frontend
 ```
@@ -477,18 +491,70 @@ VITE_API_URL="/api"    # optional — defaults to /api if not set
 
 ---
 
-## 12. Running the App
+## 12. Production Deployment (AWS EC2)
 
-### With Docker (Recommended)
+### Prerequisites
+- EC2 instance running Ubuntu 24.04 LTS
+- Elastic IP allocated and associated
+- DNS A record: `tickets.organic-erp.com` → Elastic IP
+- Inbound security group rules: ports 22, 80, 443
+
+### Step 1 — Install Docker
+```bash
+sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo usermod -aG docker ubuntu && newgrp docker
+```
+
+### Step 2 — Get SSL Certificate
+```bash
+sudo apt-get install -y certbot
+sudo certbot certonly --standalone -d tickets.organic-erp.com
+```
+Certificates saved to `/etc/letsencrypt/live/tickets.organic-erp.com/`.
+
+### Step 3 — Clone and Configure
 ```bash
 git clone https://github.com/aivarya/Case_Management.git
 cd Case_Management
-docker-compose up --build
-```
-Open browser: `http://localhost`
 
-### Without Docker (Development)
-**Requirements:** Node.js 18+, PostgreSQL running
+# Create backend environment file
+cat > backend/.env << 'EOF'
+DATABASE_URL="postgresql://postgres:secret@db:5432/casemgmt"
+SESSION_SECRET="replace-with-a-long-random-string"
+PORT=3001
+EOF
+```
+
+### Step 4 — Start the App
+```bash
+docker compose up -d --build
+docker compose ps
+```
+All 4 containers (db, backend, frontend, nginx) should show `Up`.
+
+### Step 5 — Verify
+Open `https://tickets.organic-erp.com` — login page should load with a valid trusted certificate.
+
+### SSL Certificate Renewal
+Let's Encrypt certificates expire every 90 days. Renew with:
+```bash
+docker compose down
+sudo certbot renew
+docker compose up -d
+```
+Or set up a cron job for automatic renewal:
+```bash
+sudo crontab -e
+# Add: 0 3 1 * * cd /home/ubuntu/Case_Management && docker compose down && certbot renew --quiet && docker compose up -d
+```
+
+### Local Development (Without Docker)
+**Requirements:** Node.js 18+, PostgreSQL running locally
 
 ```bash
 # Terminal 1 — Backend
@@ -511,7 +577,7 @@ Open browser: `http://localhost:5173`
 
 | Field | Value |
 |---|---|
-| URL | `http://localhost` |
+| URL | `https://tickets.organic-erp.com` |
 | Email | `admin@company.com` |
 | Password | `admin123` |
 
