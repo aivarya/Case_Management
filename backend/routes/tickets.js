@@ -87,7 +87,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 
 // PATCH /api/tickets/:id
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { title, description, requestor, priority, status, resolution, dueDate, assignedToId } = req.body;
+  const { title, description, requestor, priority, status, resolution, dueDate, assignedToId, dueDateChangeReason } = req.body;
   const ticketId = Number(req.params.id);
 
   // Resolution is mandatory when closing a ticket
@@ -126,6 +126,23 @@ router.patch('/:id', requireAuth, async (req, res) => {
           performedById: req.session.userId,
         },
       });
+    }
+
+    // Log due date change
+    if (dueDate !== undefined) {
+      const existingDate = existing.dueDate ? existing.dueDate.toISOString().split('T')[0] : null;
+      const newDate = dueDate || null;
+      if (newDate !== existingDate) {
+        const from = existingDate || 'none';
+        const to = newDate || 'none';
+        await req.prisma.activityLog.create({
+          data: {
+            action: `Due date changed from ${from} to ${to} — Reason: ${dueDateChangeReason || 'No reason provided'}`,
+            ticketId,
+            performedById: req.session.userId,
+          },
+        });
+      }
     }
 
     res.json(updated);

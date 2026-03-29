@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { api } from '../api';
 
 export default function CommentThread({ ticket, onUpdated }) {
@@ -60,15 +60,18 @@ export default function CommentThread({ ticket, onUpdated }) {
         <>
           <h4 className="section-label" style={{ marginTop: '1.5rem' }}>Activity</h4>
           <div className="activity-log">
-            {ticket.activityLog.map(log => (
-              <div key={log.id} className="activity-item">
-                <span className="activity-dot" />
-                <span className="activity-text">
-                  {log.performedBy.name} — {log.action}
-                </span>
-                <span className="activity-time">{new Date(log.createdAt).toLocaleString()}</span>
-              </div>
-            ))}
+            {ticket.activityLog.map(log => {
+              const isDueDateChange = log.action.startsWith('Due date changed');
+              return (
+                <div key={log.id} className="activity-item" style={isDueDateChange ? { color: '#ef4444' } : undefined}>
+                  <span className="activity-dot" style={isDueDateChange ? { background: '#ef4444' } : undefined} />
+                  <span className="activity-text">
+                    {log.performedBy.name} — {log.action}
+                  </span>
+                  <span className="activity-time">{new Date(log.createdAt).toLocaleString()}</span>
+                </div>
+              );
+            })}
           </div>
         </>
       )}

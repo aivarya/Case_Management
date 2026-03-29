@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../api';
 import CommentThread from './CommentThread';
 
@@ -12,6 +12,7 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [dueDateReason, setDueDateReason] = useState('');
 
   useEffect(() => {
     if (!ticketId) return;
@@ -33,6 +34,7 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
         assignedToId: t.assignedTo?.id || '',
         dueDate: t.dueDate ? t.dueDate.split('T')[0] : '',
       });
+      setDueDateReason('');
     } catch (err) {
       setError('Failed to load ticket');
     }
@@ -42,6 +44,11 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
     if (form.status === 'DONE' && !form.resolution?.trim()) {
       return setError('Resolution is required when closing a ticket');
     }
+    const originalDueDate = ticket.dueDate ? ticket.dueDate.split('T')[0] : '';
+    const dueDateChanged = form.dueDate !== originalDueDate;
+    if (dueDateChanged && !dueDateReason.trim()) {
+      return setError('A reason is required when changing the due date');
+    }
     setSaving(true);
     setError('');
     try {
@@ -50,6 +57,7 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
         assignedToId: form.assignedToId || null,
         dueDate: form.dueDate || null,
         resolution: form.resolution || null,
+        ...(dueDateChanged && { dueDateChangeReason: dueDateReason.trim() }),
       });
       onUpdated && onUpdated();
       onClose();
@@ -158,6 +166,21 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
                   />
                 </div>
               </div>
+
+              {ticket && form.dueDate !== (ticket.dueDate ? ticket.dueDate.split('T')[0] : '') && (
+                <div className="form-group">
+                  <label className="form-label" style={{ color: '#f97316' }}>Reason for due date change *</label>
+                  <textarea
+                    className="textarea"
+                    rows={2}
+                    value={dueDateReason}
+                    onChange={e => setDueDateReason(e.target.value)}
+                    placeholder="Why is the due date being changed?"
+                    style={{ borderColor: !dueDateReason.trim() ? '#ef4444' : undefined }}
+                    autoFocus
+                  />
+                </div>
+              )}
 
               {form.status === 'DONE' && (
                 <div className="form-group">
