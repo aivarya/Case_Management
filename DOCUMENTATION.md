@@ -215,7 +215,8 @@ case-management-app/
 
 #### Dashboard
 - Summary cards: Open Tickets, Assigned to Me, Resolved, Critical Open
-- Recently Updated Tickets list
+- Recently Updated Tickets list (shows last **7** tickets sorted by most recently updated)
+- Each recently updated ticket card displays: priority badge, title, assignee name (right-aligned), assignee avatar with initials, and date
 - New Ticket button
 - Role-based Chart.js charts (see Chart.js Charts section below)
 
@@ -285,6 +286,7 @@ Chart data is derived live from the tickets API response. The agent performance 
 
 #### TicketModal
 - Full ticket editor in a modal overlay
+- Modal stays open when clicking outside — only closes via the ✕ button, Save Changes, or Delete Ticket
 - Editable fields: Title, Requestor, Description, Priority, Status, Assigned To, Due Date
 - Resolution textarea — visible and required only when Status = DONE
 - Ticket meta info: Ticket ID and Creation Date (system-generated, read-only)

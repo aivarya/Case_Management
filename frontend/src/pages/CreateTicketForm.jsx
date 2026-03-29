@@ -30,7 +30,7 @@ export default function CreateTicketForm({ onClose, onCreated }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal modal-sm">
         <div className="modal-header">
           <h2>New Ticket</h2>
