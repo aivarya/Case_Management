@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../App';
 import { api } from '../api';
@@ -61,12 +61,15 @@ export default function Navbar() {
   const { user, setUser } = useAuth();
   const navigate = useNavigate();
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function handleLogout() {
     await api.logout();
     setUser(null);
     navigate('/login');
   }
+
+  function closeMenu() { setMenuOpen(false); }
 
   return (
     <>
@@ -75,19 +78,22 @@ export default function Navbar() {
           <span className="navbar-logo">🎫</span>
           <span className="navbar-title">IT Case Manager</span>
         </div>
-        <div className="navbar-links">
-          <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Dashboard</NavLink>
-          <NavLink to="/kanban" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Kanban</NavLink>
-          <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Calendar</NavLink>
-          <NavLink to="/list" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>List</NavLink>
+        <button className="navbar-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
+          {menuOpen ? '✕' : '☰'}
+        </button>
+        <div className={`navbar-links${menuOpen ? ' open' : ''}`}>
+          <NavLink to="/" end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Dashboard</NavLink>
+          <NavLink to="/kanban" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Kanban</NavLink>
+          <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Calendar</NavLink>
+          <NavLink to="/list" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>List</NavLink>
           {user?.role === 'ADMIN' && (
-            <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>Admin</NavLink>
+            <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Admin</NavLink>
           )}
         </div>
-        <div className="navbar-user">
+        <div className={`navbar-user${menuOpen ? ' open' : ''}`}>
           <span className="user-name">{user?.name}</span>
           <span className={`role-badge role-${user?.role?.toLowerCase()}`}>{user?.role}</span>
-          <button className="btn btn-ghost" onClick={() => setShowChangePassword(true)}>🔑 Password</button>
+          <button className="btn btn-ghost" onClick={() => { setShowChangePassword(true); closeMenu(); }}>🔑 Password</button>
           <button className="btn btn-ghost" onClick={handleLogout}>Logout</button>
         </div>
       </nav>

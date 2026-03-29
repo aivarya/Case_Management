@@ -272,7 +272,7 @@ export default function Dashboard() {
       </div>
 
       {/* Row 1 — Metric cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '16px' }}>
+      <div className="dashboard-metrics">
         {metrics.map(m => (
           <div key={m.label} style={{ background: '#111111', border: '0.5px solid #222', borderRadius: '8px', padding: '14px 16px' }}>
             <div style={{ fontSize: '26px', fontWeight: 700, color: '#7b8fff', lineHeight: 1.1 }}>{m.value}</div>
@@ -282,7 +282,7 @@ export default function Dashboard() {
       </div>
 
       {/* Row 2 — Recently updated (1fr) + Charts (2fr) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '12px', marginBottom: '12px' }}>
+      <div className="dashboard-main">
 
         {/* Left — recently updated */}
         <div>
