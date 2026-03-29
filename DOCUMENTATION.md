@@ -410,8 +410,8 @@ When an admin deletes a user, the following happens in order:
 ### Architecture
 ```
 Browser
-  └── https://tickets.organic-erp.com (port 443)
-        └── AWS Route 53 / DNS — A record (tickets.organic-erp.com → Elastic IP)
+  └── https://cms.organic-erp.com (port 443)
+        └── AWS Route 53 / DNS — A record (cms.organic-erp.com → Elastic IP)
               └── EC2 Instance (Ubuntu 24.04) — Elastic IP
                     └── Nginx container — ports 80:80, 443:443
                           ├── Port 80 → 301 redirect to HTTPS
@@ -432,7 +432,7 @@ Browser
 | Elastic IP | Static public IP — attached to EC2 instance |
 | Security Group | Inbound: 22 (SSH), 80 (HTTP), 443 (HTTPS) |
 | SSL Certificate | Let's Encrypt — free, auto-renewable, trusted |
-| Domain | tickets.organic-erp.com → Elastic IP (DNS A record) |
+| Domain | cms.organic-erp.com → Elastic IP (DNS A record) |
 
 ### docker-compose.yml Services
 | Service | Image | Port | Description |
@@ -496,7 +496,7 @@ VITE_API_URL="/api"    # optional — defaults to /api if not set
 ### Prerequisites
 - EC2 instance running Ubuntu 24.04 LTS
 - Elastic IP allocated and associated
-- DNS A record: `tickets.organic-erp.com` → Elastic IP
+- DNS A record: `cms.organic-erp.com` → Elastic IP
 - Inbound security group rules: ports 22, 80, 443
 
 ### Step 1 — Install Docker
@@ -513,9 +513,9 @@ sudo usermod -aG docker ubuntu && newgrp docker
 ### Step 2 — Get SSL Certificate
 ```bash
 sudo apt-get install -y certbot
-sudo certbot certonly --standalone -d tickets.organic-erp.com
+sudo certbot certonly --standalone -d cms.organic-erp.com
 ```
-Certificates saved to `/etc/letsencrypt/live/tickets.organic-erp.com/`.
+Certificates saved to `/etc/letsencrypt/live/cms.organic-erp.com/`.
 
 ### Step 3 — Clone and Configure
 ```bash
@@ -538,7 +538,7 @@ docker compose ps
 All 4 containers (db, backend, frontend, nginx) should show `Up`.
 
 ### Step 5 — Verify
-Open `https://tickets.organic-erp.com` — login page should load with a valid trusted certificate.
+Open `https://cms.organic-erp.com` — login page should load with a valid trusted certificate.
 
 ### SSL Certificate Renewal
 Let's Encrypt certificates expire every 90 days. Renew with:
@@ -577,7 +577,7 @@ Open browser: `http://localhost:5173`
 
 | Field | Value |
 |---|---|
-| URL | `https://tickets.organic-erp.com` |
+| URL | `https://cms.organic-erp.com` |
 | Email | `admin@company.com` |
 | Password | `admin123` |
 
