@@ -77,6 +77,11 @@ function RecentTicketCard({ ticket, onClick }) {
         <span style={{ fontSize: '13px', color: '#cccccc', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {ticket.title}
         </span>
+        {ticket.assignedTo?.name && (
+          <span style={{ fontSize: '11px', color: '#888', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            {ticket.assignedTo.name}
+          </span>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         {initials
@@ -246,7 +251,7 @@ export default function Dashboard() {
   const isAdmin     = user?.role === 'ADMIN';
   const openTickets = tickets.filter(t => t.status !== 'DONE');
   const myTickets   = tickets.filter(t => t.assignedTo?.id === user?.id && t.status !== 'DONE');
-  const recent      = [...tickets].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 5);
+  const recent      = [...tickets].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 7);
 
   if (loading) return <div className="loading">Loading...</div>;
 

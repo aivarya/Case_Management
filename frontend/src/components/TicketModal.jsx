@@ -76,7 +76,7 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
   if (!ticketId) return null;
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
           <h2>Ticket #{ticketId}</h2>
