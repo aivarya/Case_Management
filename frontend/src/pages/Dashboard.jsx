@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Chart } from 'chart.js/auto';
 import { api } from '../api';
 import { useAuth } from '../App';
@@ -61,11 +62,10 @@ function RecentTicketCard({ ticket, onClick }) {
   return (
     <div
       onClick={onClick}
-      style={{ background: '#111', border: '0.5px solid #222', borderRadius: '8px', padding: '10px 12px', cursor: 'pointer', transition: 'border-color 0.15s' }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = '#6c63ff'}
-      onMouseLeave={e => e.currentTarget.style.borderColor = '#222'}
+      className="recent-ticket-card"
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
+      {/* Row 1: priority badge + title */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
         <span style={{
           background: PRIORITY_COLORS[ticket.priority] || '#555',
           color: '#fff', fontSize: '10px', fontWeight: 700,
@@ -77,18 +77,23 @@ function RecentTicketCard({ ticket, onClick }) {
         <span style={{ fontSize: '13px', color: '#cccccc', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {ticket.title}
         </span>
-        {ticket.assignedTo?.name && (
-          <span style={{ fontSize: '11px', color: '#888', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            {ticket.assignedTo.name}
-          </span>
-        )}
+        <span style={{ fontSize: '12px', color: '#555', flexShrink: 0 }}>›</span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        {initials
-          ? <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#6c63ff', color: '#fff', fontSize: '9px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</span>
-          : <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#222', flexShrink: 0 }} />
-        }
-        <span style={{ fontSize: '11px', color: '#444' }}>{dateStr}</span>
+      {/* Row 2: calendar date (left) + avatar+name (right) */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{ fontSize: '11px', color: '#555' }}>📅</span>
+          <span style={{ fontSize: '11px', color: '#555' }}>{dateStr}</span>
+        </div>
+        {ticket.assignedTo?.name && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            {initials
+              ? <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#6c63ff', color: '#fff', fontSize: '9px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{initials}</span>
+              : null
+            }
+            <span style={{ fontSize: '11px', color: '#666' }}>{ticket.assignedTo.name}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -232,6 +237,7 @@ function AgentPerformance({ tickets }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
@@ -248,18 +254,21 @@ export default function Dashboard() {
     }
   }
 
-  const isAdmin     = user?.role === 'ADMIN';
-  const openTickets = tickets.filter(t => t.status !== 'DONE');
-  const myTickets   = tickets.filter(t => t.assignedTo?.id === user?.id && t.status !== 'DONE');
-  const recent      = [...tickets].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 7);
+  const today     = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const isAdmin      = user?.role === 'ADMIN';
+  const openTickets  = tickets.filter(t => t.status !== 'DONE');
+  const overdueTickets = tickets.filter(t => t.dueDate && new Date(t.dueDate) < today && t.status !== 'DONE');
+  const recent       = [...tickets].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 7);
 
   if (loading) return <div className="loading">Loading...</div>;
 
   const metrics = [
-    { value: openTickets.length,                                                               label: 'Open Tickets'   },
-    { value: myTickets.length,                                                                 label: 'Assigned to Me' },
-    { value: tickets.filter(t => t.status === 'DONE').length,                                 label: 'Resolved'       },
-    { value: tickets.filter(t => t.priority === 'CRITICAL' && t.status !== 'DONE').length,    label: 'Critical Open'  },
+    { value: openTickets.length,                                                              label: 'Open Tickets',    filter: 'open',     accent: '#7b8fff' },
+    { value: overdueTickets.length,                                                           label: 'Overdue Tickets', filter: 'overdue',  accent: '#ef4444' },
+    { value: tickets.filter(t => t.status === 'DONE').length,                                label: 'Resolved',        filter: 'resolved', accent: '#22c55e' },
+    { value: tickets.filter(t => t.priority === 'CRITICAL' && t.status !== 'DONE').length,   label: 'Critical Open',   filter: 'critical', accent: '#f97316' },
   ];
 
   return (
@@ -274,9 +283,14 @@ export default function Dashboard() {
       {/* Row 1 — Metric cards */}
       <div className="dashboard-metrics">
         {metrics.map(m => (
-          <div key={m.label} style={{ background: '#111111', border: '0.5px solid #222', borderRadius: '8px', padding: '14px 16px' }}>
-            <div style={{ fontSize: '26px', fontWeight: 700, color: '#7b8fff', lineHeight: 1.1 }}>{m.value}</div>
-            <div style={{ fontSize: '12px', color: '#555', marginTop: '4px' }}>{m.label}</div>
+          <div
+            key={m.label}
+            className="metric-card"
+            onClick={() => navigate(`/list?filter=${m.filter}`)}
+            style={{ '--metric-accent': m.accent }}
+          >
+            <div style={{ fontSize: '26px', fontWeight: 700, color: m.accent, lineHeight: 1.1 }}>{m.value}</div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{m.label}</div>
           </div>
         ))}
       </div>

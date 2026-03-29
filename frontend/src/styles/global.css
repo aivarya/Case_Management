@@ -197,6 +197,12 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 .dashboard-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
 .dashboard-main { display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 12px; }
 
+.metric-card { background: #111111; border: 0.5px solid #222; border-radius: 8px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.metric-card:hover { border-color: var(--metric-accent, #6c63ff); background: #161616; }
+
+.recent-ticket-card { background: #111; border: 0.5px solid #222; border-radius: 8px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s; }
+.recent-ticket-card:hover { border-color: #6c63ff; }
+
 /* === Navbar Hamburger (hidden on desktop) === */
 .navbar-hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.4rem; cursor: pointer; padding: 0.25rem 0.5rem; line-height: 1; }
 

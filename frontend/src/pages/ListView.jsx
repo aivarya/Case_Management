@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import TicketModal from '../components/TicketModal';
 import CreateTicketForm from './CreateTicketForm';
@@ -66,12 +67,22 @@ function exportXLSX(tickets) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function getInitialFilters(searchParams) {
+  const f = searchParams.get('filter');
+  if (f === 'open')     return { status: '__open__',    priority: '', search: '' };
+  if (f === 'overdue')  return { status: '__overdue__', priority: '', search: '' };
+  if (f === 'resolved') return { status: 'DONE',        priority: '', search: '' };
+  if (f === 'critical') return { status: '__open__',    priority: 'CRITICAL', search: '' };
+  return { status: '', priority: '', search: '' };
+}
+
 export default function ListView() {
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
-  const [filters, setFilters] = useState({ status: '', priority: '', search: '' });
+  const [filters, setFilters] = useState(() => getInitialFilters(searchParams));
   const [sortBy, setSortBy] = useState({ field: 'createdAt', dir: 'desc' });
 
   useEffect(() => { loadTickets(); }, []);
@@ -94,9 +105,14 @@ export default function ListView() {
     return sortBy.dir === 'asc' ? ' ↑' : ' ↓';
   }
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
   const filtered = tickets
     .filter(t => {
-      if (filters.status && t.status !== filters.status) return false;
+      if (filters.status === '__open__')    { if (t.status === 'DONE') return false; }
+      else if (filters.status === '__overdue__') { if (!(t.dueDate && new Date(t.dueDate) < today && t.status !== 'DONE')) return false; }
+      else if (filters.status && t.status !== filters.status) return false;
       if (filters.priority && t.priority !== filters.priority) return false;
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -138,6 +154,8 @@ export default function ListView() {
         />
         <select className="select" style={{ width: 'auto' }} value={filters.status} onChange={e => setFilters(f => ({ ...f, status: e.target.value }))}>
           <option value="">All Statuses</option>
+          <option value="__open__">Open (not resolved)</option>
+          <option value="__overdue__">Overdue</option>
           <option value="TODO">To Do</option>
           <option value="IN_PROGRESS">In Progress</option>
           <option value="IN_REVIEW">In Review</option>
