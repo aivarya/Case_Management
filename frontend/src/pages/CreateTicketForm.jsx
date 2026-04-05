@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
+import SmartTextarea from '../components/SmartTextarea';
 
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
@@ -47,7 +48,7 @@ export default function CreateTicketForm({ onClose, onCreated }) {
           </div>
           <div className="form-group">
             <label className="form-label">Description</label>
-            <textarea className="textarea" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Details, steps to reproduce, etc." />
+            <SmartTextarea rows={3} value={form.description} onChange={val => setForm(f => ({ ...f, description: val }))} placeholder="Details, steps to reproduce, etc." />
           </div>
           <div className="form-row">
             <div className="form-group">

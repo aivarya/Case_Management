@@ -138,6 +138,13 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
 /* === Comments & Activity === */
 .comment-thread { }
+
+/* === SmartTextarea === */
+.smart-textarea-wrapper { display: flex; flex-direction: column; }
+.smart-suggestion { margin-top: 8px; background: #111; border: 1px solid #2e2e2e; border-radius: 8px; padding: 10px 12px; }
+.smart-suggestion-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #555; margin-bottom: 6px; font-weight: 600; }
+.smart-suggestion-text { font-size: 13px; color: #cccccc; white-space: pre-wrap; margin-bottom: 10px; }
+.textarea.input-error { border-color: #ef4444; }
 .section-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.75rem; font-weight: 600; }
 .comment-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
 .comment-item { background: var(--bg); border-radius: 6px; padding: 0.75rem; }

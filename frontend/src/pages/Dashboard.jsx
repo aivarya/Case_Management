@@ -233,6 +233,127 @@ function AgentPerformance({ tickets }) {
   );
 }
 
+function PerformanceKPIs({ tickets }) {
+  const now = new Date();
+  const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+  const monthAgo = new Date(now); monthAgo.setDate(now.getDate() - 30);
+
+  const weeklyOpened   = tickets.filter(t => new Date(t.createdAt) >= weekAgo).length;
+  const weeklyResolved = tickets.filter(t => t.status === 'DONE' && new Date(t.updatedAt) >= weekAgo).length;
+  const monthlyOpened  = tickets.filter(t => new Date(t.createdAt) >= monthAgo).length;
+  const monthlyRes     = tickets.filter(t => t.status === 'DONE' && new Date(t.updatedAt) >= monthAgo).length;
+  const monthlyRate    = monthlyOpened > 0 ? Math.round((monthlyRes / monthlyOpened) * 100) : 0;
+
+  const kpis = [
+    { value: weeklyOpened,       label: 'Weekly Opened',          accent: '#6c63ff' },
+    { value: weeklyResolved,     label: 'Weekly Resolved',        accent: '#00c2ff' },
+    { value: monthlyOpened,      label: 'Monthly Opened',         accent: '#b044ff' },
+    { value: `${monthlyRate}%`,  label: 'Monthly Resolution Rate', accent: '#22c55e' },
+  ];
+
+  return (
+    <div className="dashboard-metrics" style={{ marginTop: '10px' }}>
+      {kpis.map(k => (
+        <div key={k.label} className="metric-card" style={{ '--metric-accent': k.accent }}>
+          <div style={{ fontSize: '26px', fontWeight: 700, color: k.accent, lineHeight: 1.1 }}>{k.value}</div>
+          <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{k.label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WeeklyTrend({ tickets }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const now = new Date();
+    const weeks = Array.from({ length: 4 }, (_, i) => {
+      const end = new Date(now); end.setDate(now.getDate() - i * 7);
+      const start = new Date(end); start.setDate(end.getDate() - 6);
+      return { start, end, label: `Wk ${4 - i}` };
+    }).reverse();
+
+    const opened   = weeks.map(w => tickets.filter(t => { const d = new Date(t.createdAt); return d >= w.start && d <= w.end; }).length);
+    const resolved = weeks.map(w => tickets.filter(t => { const d = new Date(t.updatedAt); return t.status === 'DONE' && d >= w.start && d <= w.end; }).length);
+
+    const chart = new Chart(canvasRef.current, {
+      type: 'line',
+      data: {
+        labels: weeks.map(w => w.label),
+        datasets: [
+          { label: 'Opened',   data: opened,   borderColor: '#378ADD', backgroundColor: 'rgba(55,138,221,0.1)',  fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2 },
+          { label: 'Resolved', data: resolved, borderColor: '#1D9E75', backgroundColor: 'rgba(29,158,117,0.1)', fill: true, tension: 0.4, pointRadius: 4, borderWidth: 2 },
+        ],
+      },
+      options: {
+        ...COMMON,
+        scales: {
+          x: { ticks: TICK, grid: { color: GRID } },
+          y: { min: 0, ticks: { ...TICK, stepSize: 1 }, grid: { color: GRID } },
+        },
+      },
+    });
+    return () => chart.destroy();
+  }, [tickets]);
+
+  return (
+    <div style={CARD_STYLE}>
+      <p style={SECTION_LABEL}>Weekly Trend — Last 4 Weeks</p>
+      <ChartLegend items={[{ label: 'Opened', color: '#378ADD' }, { label: 'Resolved', color: '#1D9E75' }]} />
+      <div style={{ position: 'relative', height: '180px' }}>
+        <canvas ref={canvasRef} />
+      </div>
+    </div>
+  );
+}
+
+function MonthlyTrend({ tickets }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const now = new Date();
+    const months = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      return { year: d.getFullYear(), month: d.getMonth(), label: d.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) };
+    });
+
+    const opened   = months.map(m => tickets.filter(t => { const d = new Date(t.createdAt); return d.getFullYear() === m.year && d.getMonth() === m.month; }).length);
+    const resolved = months.map(m => tickets.filter(t => { const d = new Date(t.updatedAt); return t.status === 'DONE' && d.getFullYear() === m.year && d.getMonth() === m.month; }).length);
+
+    const chart = new Chart(canvasRef.current, {
+      type: 'bar',
+      data: {
+        labels: months.map(m => m.label),
+        datasets: [
+          { label: 'Opened',   data: opened,   backgroundColor: 'rgba(55,138,221,0.85)',  barPercentage: 0.6, categoryPercentage: 0.7, borderRadius: 3 },
+          { label: 'Resolved', data: resolved, backgroundColor: 'rgba(29,158,117,0.85)', barPercentage: 0.6, categoryPercentage: 0.7, borderRadius: 3 },
+        ],
+      },
+      options: {
+        ...COMMON,
+        scales: {
+          x: { ticks: TICK, grid: { display: false } },
+          y: { min: 0, ticks: { ...TICK, stepSize: 1 }, grid: { color: GRID } },
+        },
+      },
+    });
+    return () => chart.destroy();
+  }, [tickets]);
+
+  return (
+    <div style={CARD_STYLE}>
+      <p style={SECTION_LABEL}>Monthly Trend — Last 6 Months</p>
+      <ChartLegend items={[{ label: 'Opened', color: 'rgba(55,138,221,0.85)' }, { label: 'Resolved', color: 'rgba(29,158,117,0.85)' }]} />
+      <div style={{ position: 'relative', height: '180px' }}>
+        <canvas ref={canvasRef} />
+      </div>
+    </div>
+  );
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -319,8 +440,17 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Row 3 — Agent performance (Admin only) */}
-      {isAdmin && <AgentPerformance tickets={tickets} />}
+      {/* Row 3 — Performance KPIs (all users) */}
+      <PerformanceKPIs tickets={tickets} />
+
+      {/* Row 4 — Admin only: 3 charts */}
+      {isAdmin && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginTop: '10px' }}>
+          <AgentPerformance tickets={tickets} />
+          <WeeklyTrend tickets={tickets} />
+          <MonthlyTrend tickets={tickets} />
+        </div>
+      )}
 
       {showCreate && (
         <CreateTicketForm

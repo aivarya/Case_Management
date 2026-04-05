@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api';
 import CommentThread from './CommentThread';
+import SmartTextarea from './SmartTextarea';
 
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 const STATUSES = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE'];
@@ -122,11 +123,10 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
 
               <div className="form-group">
                 <label className="form-label">Description</label>
-                <textarea
-                  className="textarea"
+                <SmartTextarea
                   rows={4}
                   value={form.description || ''}
-                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                  onChange={val => setForm(f => ({ ...f, description: val }))}
                   placeholder="Add a description..."
                 />
               </div>
@@ -170,14 +170,12 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
               {ticket && form.dueDate !== (ticket.dueDate ? ticket.dueDate.split('T')[0] : '') && (
                 <div className="form-group">
                   <label className="form-label" style={{ color: '#f97316' }}>Reason for due date change *</label>
-                  <textarea
-                    className="textarea"
+                  <SmartTextarea
                     rows={2}
                     value={dueDateReason}
-                    onChange={e => setDueDateReason(e.target.value)}
+                    onChange={val => setDueDateReason(val)}
                     placeholder="Why is the due date being changed?"
-                    style={{ borderColor: !dueDateReason.trim() ? '#ef4444' : undefined }}
-                    autoFocus
+                    className={`textarea${!dueDateReason.trim() ? ' input-error' : ''}`}
                   />
                 </div>
               )}
@@ -185,13 +183,12 @@ export default function TicketModal({ ticketId, onClose, onUpdated }) {
               {form.status === 'DONE' && (
                 <div className="form-group">
                   <label className="form-label" style={{ color: '#f97316' }}>Resolution / Action Taken *</label>
-                  <textarea
-                    className="textarea"
+                  <SmartTextarea
                     rows={3}
                     value={form.resolution || ''}
-                    onChange={e => setForm(f => ({ ...f, resolution: e.target.value }))}
+                    onChange={val => setForm(f => ({ ...f, resolution: val }))}
                     placeholder="What was done to resolve this ticket? (required to close)"
-                    style={{ borderColor: !form.resolution?.trim() ? '#ef4444' : undefined }}
+                    className={`textarea${!form.resolution?.trim() ? ' input-error' : ''}`}
                   />
                 </div>
               )}

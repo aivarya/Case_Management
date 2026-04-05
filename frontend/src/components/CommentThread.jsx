@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api';
+import SmartTextarea from './SmartTextarea';
 
 export default function CommentThread({ ticket, onUpdated }) {
   const [body, setBody] = useState('');
@@ -43,10 +44,9 @@ export default function CommentThread({ ticket, onUpdated }) {
       </div>
 
       <form className="comment-form" onSubmit={handleSubmit}>
-        <textarea
-          className="textarea"
+        <SmartTextarea
           value={body}
-          onChange={e => setBody(e.target.value)}
+          onChange={val => setBody(val)}
           placeholder="Add a comment..."
           rows={3}
         />

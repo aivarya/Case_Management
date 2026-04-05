@@ -41,6 +41,9 @@ export const api = {
   // Comments
   addComment: (ticketId, body) => request(`/tickets/${ticketId}/comments`, { method: 'POST', body: JSON.stringify({ body }) }),
 
+  // AI
+  improveText: (text) => request('/ai/correct', { method: 'POST', body: JSON.stringify({ text }) }),
+
   // Users
   getUsers: () => request('/users'),
   createUser: (data) => request('/users', { method: 'POST', body: JSON.stringify(data) }),
