@@ -20,6 +20,18 @@ const TICK   = { color: '#444', font: { size: 10 } };
 const GRID   = 'rgba(255,255,255,0.04)';
 const COMMON = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
 
+// ─── Invoice helpers (shared with InvoicePage) ────────────────────────────────
+const USD_TO_AED = 3.6725;
+function toAED(amount, currency) { return currency === 'USD' ? amount * USD_TO_AED : amount; }
+function fmtAED(amount) { return 'AED ' + amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function parseTermsDays(pt) {
+  if (!pt) return null;
+  const lower = pt.toLowerCase().trim();
+  if (lower === 'immediate' || lower === 'cod') return 0;
+  const m = lower.match(/\d+/);
+  return m ? parseInt(m[0]) : null;
+}
+
 const CARD_STYLE = {
   background: '#111111',
   border: '0.5px solid #222',
@@ -354,6 +366,97 @@ function MonthlyTrend({ tickets }) {
   );
 }
 
+// ─── Supplier Invoice Summary (admin only) ───────────────────────────────────
+
+function SupplierInvoiceSummary({ invoices, suppliers, onNavigate }) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  const rowMap = {};
+  suppliers.forEach(s => {
+    rowMap[s.id] = { supplier: s, outstanding: 0, totalAED: 0, overdueAED: 0 };
+  });
+
+  invoices.forEach(inv => {
+    if (inv.status === 'PAID' || inv.status === 'REJECTED') return;
+    const row = rowMap[inv.supplierId];
+    if (!row) return;
+    const amtAED = toAED(inv.amount, inv.currency);
+    row.outstanding++;
+    row.totalAED += amtAED;
+    const termsDays = parseTermsDays(row.supplier.paymentTerms);
+    if (termsDays !== null) {
+      const due = new Date(inv.invoiceDate);
+      due.setDate(due.getDate() + termsDays);
+      due.setHours(0, 0, 0, 0);
+      if (today > due) row.overdueAED += amtAED;
+    }
+  });
+
+  const rows = Object.values(rowMap)
+    .filter(r => r.outstanding > 0)
+    .sort((a, b) => b.totalAED - a.totalAED);
+
+  if (rows.length === 0) return null;
+
+  const totalInv    = rows.reduce((s, r) => s + r.outstanding, 0);
+  const grandTotal  = rows.reduce((s, r) => s + r.totalAED, 0);
+  const grandOverdue = rows.reduce((s, r) => s + r.overdueAED, 0);
+
+  return (
+    <div style={{ ...CARD_STYLE, marginTop: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+        <p style={{ ...SECTION_LABEL, marginBottom: 0 }}>Supplier Invoice Summary</p>
+        <button className="btn btn-ghost btn-sm" onClick={onNavigate} style={{ fontSize: '11px' }}>View All →</button>
+      </div>
+      <div className="list-table-wrapper">
+        <table className="list-table" style={{ fontSize: '12px' }}>
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th>Payment Terms</th>
+              <th style={{ textAlign: 'right' }}>Outstanding Inv.</th>
+              <th style={{ textAlign: 'right' }}>Total Due (AED)</th>
+              <th style={{ textAlign: 'right' }}>Overdue (AED)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row => (
+              <tr key={row.supplier.id}>
+                <td style={{ fontWeight: 500 }}>{row.supplier.name}</td>
+                <td><span className="inv-terms-badge">{row.supplier.paymentTerms}</span></td>
+                <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{row.outstanding}</td>
+                <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: 'var(--primary)' }}>{fmtAED(row.totalAED)}</td>
+                <td style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                  {row.overdueAED > 0
+                    ? <span style={{ color: '#ef4444', fontWeight: 600 }}>{fmtAED(row.overdueAED)}</span>
+                    : <span style={{ color: '#444' }}>—</span>
+                  }
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: '1px solid #222' }}>
+              <td colSpan={2} style={{ fontWeight: 600, color: '#666', fontSize: '11px', paddingTop: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total</td>
+              <td style={{ textAlign: 'right', fontWeight: 700, paddingTop: '8px' }}>{totalInv}</td>
+              <td style={{ textAlign: 'right', fontWeight: 700, color: 'var(--primary)', paddingTop: '8px' }}>{fmtAED(grandTotal)}</td>
+              <td style={{ textAlign: 'right', fontWeight: 700, color: grandOverdue > 0 ? '#ef4444' : '#444', paddingTop: '8px' }}>
+                {grandOverdue > 0 ? fmtAED(grandOverdue) : '—'}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      {grandOverdue > 0 && (
+        <p style={{ fontSize: '11px', color: '#ef4444', marginTop: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span>⚠</span>
+          <span>{fmtAED(grandOverdue)} requires immediate settlement</span>
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -363,8 +466,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
 
   useEffect(() => { loadTickets(); }, []);
+
+  useEffect(() => {
+    if (user?.role !== 'ADMIN') return;
+    Promise.all([api.getInvoices(), api.getSuppliers()])
+      .then(([invs, sups]) => { setInvoices(invs); setSuppliers(sups); })
+      .catch(() => {});
+  }, [user]);
 
   async function loadTickets() {
     try {
@@ -450,6 +562,15 @@ export default function Dashboard() {
           <WeeklyTrend tickets={tickets} />
           <MonthlyTrend tickets={tickets} />
         </div>
+      )}
+
+      {/* Row 5 — Admin only: Supplier Invoice Summary */}
+      {isAdmin && (
+        <SupplierInvoiceSummary
+          invoices={invoices}
+          suppliers={suppliers}
+          onNavigate={() => navigate('/invoices')}
+        />
       )}
 
       {showCreate && (
