@@ -240,6 +240,10 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
 
 .inv-terms-badge { font-size: 0.75rem; background: rgba(108,99,255,0.15); color: #a5b4fc; padding: 0.15rem 0.5rem; border-radius: 4px; white-space: nowrap; }
 
+.inv-amount-row { display: flex; gap: 0.5rem; }
+.inv-currency-select { width: 90px; flex-shrink: 0; }
+.inv-rate-note { font-size: 0.75rem; color: var(--text-muted); margin-left: auto; }
+
 @media (max-width: 1024px) {
   .invoice-split { grid-template-columns: 1fr; }
 }

@@ -112,6 +112,7 @@ model Invoice {
   submittedToAccountsDate DateTime?
   description             String
   amount                  Float
+  currency                String        @default("AED")
   status                  InvoiceStatus @default(PENDING)
   remarksFromAccounts     String?
   createdAt               DateTime      @default(now())

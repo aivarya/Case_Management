@@ -24,6 +24,7 @@ router.post('/', requireAdmin, async (req, res) => {
     submittedToAccountsDate,
     description,
     amount,
+    currency,
     status,
     remarksFromAccounts,
   } = req.body;
@@ -41,6 +42,7 @@ router.post('/', requireAdmin, async (req, res) => {
         submittedToAccountsDate: submittedToAccountsDate ? new Date(submittedToAccountsDate) : null,
         description,
         amount: parseFloat(amount),
+        currency: currency || 'AED',
         status: status || 'PENDING',
         remarksFromAccounts: remarksFromAccounts || null,
       },
@@ -62,6 +64,7 @@ router.patch('/:id', requireAdmin, async (req, res) => {
     submittedToAccountsDate,
     description,
     amount,
+    currency,
     status,
     remarksFromAccounts,
   } = req.body;
@@ -74,6 +77,7 @@ router.patch('/:id', requireAdmin, async (req, res) => {
     if (submittedToAccountsDate !== undefined) data.submittedToAccountsDate = submittedToAccountsDate ? new Date(submittedToAccountsDate) : null;
     if (description !== undefined) data.description = description;
     if (amount !== undefined) data.amount = parseFloat(amount);
+    if (currency !== undefined) data.currency = currency;
     if (status !== undefined) data.status = status;
     if (remarksFromAccounts !== undefined) data.remarksFromAccounts = remarksFromAccounts || null;
 

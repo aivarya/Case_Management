@@ -11,6 +11,21 @@ const STATUS_LABELS = {
   REJECTED: 'Rejected',
 };
 
+// AED is pegged to USD at a fixed rate
+const USD_TO_AED = 3.6725;
+
+function toAED(amount, currency) {
+  return currency === 'USD' ? amount * USD_TO_AED : amount;
+}
+
+function fmtAED(amount) {
+  return 'AED ' + amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtAmount(amount, currency) {
+  return currency + ' ' + amount.toLocaleString('en-AE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function fmt(dateStr) {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString();
@@ -26,7 +41,7 @@ function toInputDate(dateStr) {
 function SupplierMaster() {
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // supplier being edited
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', address: '', paymentTerms: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -182,6 +197,7 @@ function InvoiceFormModal({ invoice, suppliers, onClose, onSaved }) {
     submittedToAccountsDate: toInputDate(invoice?.submittedToAccountsDate),
     description: invoice?.description ?? '',
     amount: invoice?.amount ?? '',
+    currency: invoice?.currency ?? 'AED',
     status: invoice?.status ?? 'PENDING',
     remarksFromAccounts: invoice?.remarksFromAccounts ?? '',
   });
@@ -243,8 +259,27 @@ function InvoiceFormModal({ invoice, suppliers, onClose, onSaved }) {
               <input type="date" className="input" value={form.submittedToAccountsDate} onChange={e => set('submittedToAccountsDate', e.target.value)} />
             </div>
             <div className="form-group">
-              <label className="form-label">Amount (₹) *</label>
-              <input type="number" step="0.01" min="0" className="input" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="0.00" />
+              <label className="form-label">Amount *</label>
+              <div className="inv-amount-row">
+                <select className="select inv-currency-select" value={form.currency} onChange={e => set('currency', e.target.value)}>
+                  <option value="AED">AED</option>
+                  <option value="USD">USD</option>
+                </select>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="input"
+                  value={form.amount}
+                  onChange={e => set('amount', e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              {form.currency === 'USD' && form.amount > 0 && (
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>
+                  ≈ {fmtAED(parseFloat(form.amount) * USD_TO_AED)} (@ {USD_TO_AED})
+                </p>
+              )}
             </div>
           </div>
           <div className="form-group">
@@ -318,9 +353,9 @@ function InvoiceTracker({ suppliers }) {
     return true;
   });
 
-  const totalOutstanding = filtered
-    .filter(inv => inv.status !== 'PAID' && inv.status !== 'REJECTED')
-    .reduce((sum, inv) => sum + inv.amount, 0);
+  const outstanding = filtered.filter(inv => inv.status !== 'PAID' && inv.status !== 'REJECTED');
+  const totalAED = outstanding.reduce((sum, inv) => sum + toAED(inv.amount, inv.currency), 0);
+  const hasUSD = outstanding.some(inv => inv.currency === 'USD');
 
   return (
     <div>
@@ -340,13 +375,14 @@ function InvoiceTracker({ suppliers }) {
         </button>
       </div>
 
-      {!filterStatus && !filterSupplier && (
-        <div className="inv-summary-bar">
-          <span>Outstanding (excl. Paid/Rejected):</span>
-          <strong style={{ color: 'var(--primary)' }}>₹ {totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-          <span className="text-muted">across {filtered.filter(i => i.status !== 'PAID' && i.status !== 'REJECTED').length} invoice(s)</span>
-        </div>
-      )}
+      <div className="inv-summary-bar">
+        <span>Outstanding (excl. Paid/Rejected):</span>
+        <strong style={{ color: 'var(--primary)' }}>{fmtAED(totalAED)}</strong>
+        <span className="text-muted">across {outstanding.length} invoice(s)</span>
+        {hasUSD && (
+          <span className="inv-rate-note">USD converted @ {USD_TO_AED} AED</span>
+        )}
+      </div>
 
       {loading ? <div className="loading">Loading...</div> : (
         filtered.length === 0
@@ -362,7 +398,7 @@ function InvoiceTracker({ suppliers }) {
                     <th>Invoice Date</th>
                     <th>Submitted to Accounts</th>
                     <th>Description</th>
-                    <th>Amount (₹)</th>
+                    <th>Amount</th>
                     <th>Status</th>
                     <th>Remarks from Accounts</th>
                     <th>Actions</th>
@@ -378,7 +414,12 @@ function InvoiceTracker({ suppliers }) {
                       <td className="text-muted" style={{ whiteSpace: 'nowrap' }}>{fmt(inv.submittedToAccountsDate)}</td>
                       <td style={{ maxWidth: 200, fontSize: '0.85rem' }}>{inv.description}</td>
                       <td style={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-                        {inv.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        <span>{fmtAmount(inv.amount, inv.currency)}</span>
+                        {inv.currency === 'USD' && (
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            ≈ {fmtAED(toAED(inv.amount, inv.currency))}
+                          </div>
+                        )}
                       </td>
                       <td><span className={`inv-status-badge inv-status-${inv.status.toLowerCase()}`}>{STATUS_LABELS[inv.status]}</span></td>
                       <td style={{ maxWidth: 180, fontSize: '0.82rem', color: 'var(--text-muted)' }}>{inv.remarksFromAccounts || '—'}</td>
@@ -416,7 +457,7 @@ export default function InvoicePage() {
 
   useEffect(() => {
     api.getSuppliers().then(setSuppliers).catch(() => {});
-  }, [tab]); // reload suppliers when switching tabs so new ones appear in invoice form
+  }, [tab]);
 
   return (
     <div className="page">
