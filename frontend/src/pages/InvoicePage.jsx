@@ -36,6 +36,29 @@ function toInputDate(dateStr) {
   return new Date(dateStr).toISOString().slice(0, 10);
 }
 
+// Parses "Net 30", "Net 60", "Immediate", "COD", "30 days" → number of days
+function parseTermsDays(paymentTerms) {
+  if (!paymentTerms) return null;
+  const lower = paymentTerms.toLowerCase().trim();
+  if (lower === 'immediate' || lower === 'cod') return 0;
+  const match = lower.match(/\d+/);
+  return match ? parseInt(match[0]) : null;
+}
+
+// Returns how many days overdue (>0), or null if not overdue / not applicable
+function getOverdueDays(inv) {
+  if (inv.status === 'PAID' || inv.status === 'REJECTED') return null;
+  const termsDays = parseTermsDays(inv.supplier?.paymentTerms);
+  if (termsDays === null) return null;
+  const dueDate = new Date(inv.invoiceDate);
+  dueDate.setDate(dueDate.getDate() + termsDays);
+  dueDate.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.floor((today - dueDate) / (1000 * 60 * 60 * 24));
+  return diff > 0 ? diff : null;
+}
+
 // ─── Supplier Master Tab ──────────────────────────────────────────────────────
 
 function SupplierMaster() {
@@ -421,7 +444,14 @@ function InvoiceTracker({ suppliers }) {
                           </div>
                         )}
                       </td>
-                      <td><span className={`inv-status-badge inv-status-${inv.status.toLowerCase()}`}>{STATUS_LABELS[inv.status]}</span></td>
+                      <td>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', alignItems: 'flex-start' }}>
+                          <span className={`inv-status-badge inv-status-${inv.status.toLowerCase()}`}>{STATUS_LABELS[inv.status]}</span>
+                          {getOverdueDays(inv) !== null && (
+                            <span className="inv-overdue-badge">Overdue {getOverdueDays(inv)}d</span>
+                          )}
+                        </div>
+                      </td>
                       <td style={{ maxWidth: 180, fontSize: '0.82rem', color: 'var(--text-muted)' }}>{inv.remarksFromAccounts || '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>

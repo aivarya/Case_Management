@@ -240,7 +240,7 @@
   <div class="cover-meta">
     <div><strong>Project:</strong> Internal IT Case Management System</div>
     <div><strong>Repository:</strong> github.com/aivarya/Case_Management</div>
-    <div><strong>Version:</strong> 1.1</div>
+    <div><strong>Version:</strong> 1.2</div>
     <div><strong>Date:</strong> April 2026</div>
     <div><strong>Prepared by:</strong> Sreyas Sambhu</div>
   </div>
@@ -287,6 +287,11 @@
       <li><span>14.</span> Recent Updates — v1.1
         <ul class="toc-sub">
           <li>Gemma AI Writing Assistance, Dashboard Analytics Enhancements</li>
+        </ul>
+      </li>
+      <li><span>15.</span> Recent Updates — v1.2
+        <ul class="toc-sub">
+          <li>Invoice Tracker, Supplier Master, Multi-Currency (AED / USD)</li>
         </ul>
       </li>
     </ol>
@@ -371,10 +376,17 @@
 │   │   ├── tickets.js          # Ticket CRUD operations
 │   │   ├── users.js            # User management (admin)
 │   │   ├── comments.js         # Ticket comments
-│   │   └── ai.js               # AI writing assistance (Gemma via Google AI Studio)
+│   │   ├── ai.js               # AI writing assistance (Gemma via Google AI Studio)
+│   │   ├── suppliers.js        # Supplier master CRUD (admin only)
+│   │   └── invoices.js         # Invoice tracking CRUD (admin only)
 │   └── prisma/
 │       ├── schema.prisma       # Database models definition
 │       └── migrations/         # SQL migration history
+│           ├── 20260326144026_init/
+│           ├── 20260326150713_add_disabled_field/
+│           ├── 20260326155902_add_requestory_resolution/
+│           ├── 20260407000001_add_suppliers_invoices/
+│           └── 20260407000002_add_invoice_currency/
 │
 └── frontend/
     ├── package.json
@@ -391,6 +403,7 @@
         │   ├── CalendarView.jsx
         │   ├── ListView.jsx
         │   ├── AdminPanel.jsx
+        │   ├── InvoicePage.jsx         # Invoice Tracker + Supplier Master (Admin only)
         │   └── CreateTicketForm.jsx
         ├── components/
         │   ├── Navbar.jsx
@@ -458,6 +471,35 @@
         <tr><td>performedById</td><td>Int</td><td>FK → User</td></tr>
       </tbody>
     </table>
+    <h3>Supplier</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>Int</td><td>Auto-increment primary key</td></tr>
+        <tr><td>name</td><td>String</td><td>Supplier / vendor name</td></tr>
+        <tr><td>address</td><td>String</td><td>Full postal address</td></tr>
+        <tr><td>paymentTerms</td><td>String</td><td>e.g. "Net 30", "Immediate"</td></tr>
+        <tr><td>createdAt</td><td>DateTime</td><td>Auto-set on creation</td></tr>
+      </tbody>
+    </table>
+    <h3>Invoice</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>Int</td><td>Auto-increment primary key</td></tr>
+        <tr><td>invoiceNumber</td><td>String</td><td>Supplier's invoice reference number</td></tr>
+        <tr><td>invoiceDate</td><td>DateTime</td><td>Date on the invoice</td></tr>
+        <tr><td>submittedToAccountsDate</td><td>DateTime?</td><td>Optional — date invoice was handed to accounts</td></tr>
+        <tr><td>description</td><td>String</td><td>Description of goods or services</td></tr>
+        <tr><td>amount</td><td>Float</td><td>Invoice amount in the selected currency</td></tr>
+        <tr><td>currency</td><td>String</td><td>AED or USD — default AED</td></tr>
+        <tr><td>status</td><td>Enum</td><td>PENDING, SUBMITTED, APPROVED, PAID, REJECTED</td></tr>
+        <tr><td>remarksFromAccounts</td><td>String?</td><td>Optional notes from the accounts team</td></tr>
+        <tr><td>createdAt</td><td>DateTime</td><td>Auto-set on creation</td></tr>
+        <tr><td>updatedAt</td><td>DateTime</td><td>Auto-updated on every save</td></tr>
+        <tr><td>supplierId</td><td>Int</td><td>FK → Supplier</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- SECTION 5 -->
@@ -507,6 +549,26 @@
 Body:    { "text": "need to chek the sever logs for erors" }
 Returns: { "corrected": "Need to check the server logs for errors." }</pre>
     <div class="info-box">The model used is <strong>gemma-3-12b-it</strong> via Google AI Studio (free tier: 14,400 requests/day). Requires <code>GOOGLE_AI_API_KEY</code> in <code>backend/.env</code>.</div>
+    <h3>Suppliers — /api/suppliers</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td>/</td><td>Admin</td><td>List all suppliers ordered by name</td></tr>
+        <tr><td>POST</td><td>/</td><td>Admin</td><td>Create a new supplier (name, address, paymentTerms required)</td></tr>
+        <tr><td>PATCH</td><td>/:id</td><td>Admin</td><td>Update supplier details</td></tr>
+        <tr><td>DELETE</td><td>/:id</td><td>Admin</td><td>Delete supplier — blocked if any invoices are linked</td></tr>
+      </tbody>
+    </table>
+    <h3>Invoices — /api/invoices</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>GET</td><td>/</td><td>Admin</td><td>List all invoices (newest first) with supplier info included</td></tr>
+        <tr><td>POST</td><td>/</td><td>Admin</td><td>Create a new invoice entry</td></tr>
+        <tr><td>PATCH</td><td>/:id</td><td>Admin</td><td>Update invoice fields (partial update supported)</td></tr>
+        <tr><td>DELETE</td><td>/:id</td><td>Admin</td><td>Delete an invoice record</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <!-- SECTION 6 -->
@@ -554,10 +616,28 @@ Returns: { "corrected": "Need to check the server logs for errors." }</pre>
       <li>Disabled users shown dimmed with a Disabled badge (not hidden)</li>
       <li>Add Team Member form with name, email, temporary password, and role</li>
     </ul>
+    <h4>Invoice Tracker <span style="font-size:0.8rem;font-weight:400;color:#888;">(Admin only — /invoices)</span></h4>
+    <ul>
+      <li>Two-tab layout: <strong>Outstanding Invoices</strong> and <strong>Supplier Master</strong></li>
+      <li><strong>Outstanding Invoices tab:</strong>
+        <ul>
+          <li>Filter by Supplier and by Status</li>
+          <li>Outstanding total bar showing combined AED value (excludes Paid and Rejected)</li>
+          <li>USD invoices automatically converted to AED at the fixed peg rate (1 USD = 3.6725 AED) with conversion note shown</li>
+          <li>Invoice table: #, Supplier, Invoice No., Invoice Date, Submitted to Accounts Date, Description, Amount (with currency), Status badge, Remarks from Accounts, Edit/Delete actions</li>
+          <li>USD rows show the AED equivalent below the original amount</li>
+          <li>New Invoice button opens a modal form</li>
+        </ul>
+      </li>
+      <li><strong>Invoice Entry Form (modal):</strong> Supplier (dropdown), Invoice Number, Invoice Date, Submitted to Accounts Date, Amount with AED/USD currency selector, Invoice Description, Status, Remarks from Accounts</li>
+      <li>Live AED conversion preview shown when USD is selected and amount is entered</li>
+      <li><strong>Supplier Master tab:</strong> supplier list table + inline add/edit form with Name, Address, Payment Terms</li>
+      <li>Supplier deletion blocked if any invoices are linked to that supplier</li>
+    </ul>
     <h3>Components</h3>
     <h4>Navbar</h4>
     <ul>
-      <li>Navigation links: Dashboard, Kanban, Calendar, List, Admin (Admin only)</li>
+      <li>Navigation links: Dashboard, Kanban, Calendar, List, Invoices (Admin only), Admin (Admin only)</li>
       <li>Displays logged-in user name and role badge</li>
       <li>Change Password button (available to all users)</li>
       <li>Logout button</li>
@@ -602,15 +682,15 @@ Returns: { "corrected": "Need to check the server logs for errors." }</pre>
     <table>
       <thead><tr><th>Role</th><th>Capabilities</th></tr></thead>
       <tbody>
-        <tr><td><strong>ADMIN</strong></td><td>See all tickets, manage users, access Admin Panel, delete tickets and users</td></tr>
+        <tr><td><strong>ADMIN</strong></td><td>See all tickets, manage users, access Admin Panel, delete tickets and users, access Invoice Tracker and Supplier Master</td></tr>
         <tr><td><strong>AGENT</strong></td><td>See only assigned tickets, update ticket status, add comments, change own password</td></tr>
       </tbody>
     </table>
     <h3>Security Rules</h3>
     <ul>
       <li>Disabled users receive a 403 error on login — cannot access the system</li>
-      <li>Agents cannot access the <code>/admin</code> route — redirected to Dashboard</li>
-      <li>Agents cannot call admin-only API endpoints — receive 403 response</li>
+      <li>Agents cannot access the <code>/admin</code> or <code>/invoices</code> routes — redirected to Dashboard</li>
+      <li>Agents cannot call admin-only API endpoints (<code>/api/users</code>, <code>/api/suppliers</code>, <code>/api/invoices</code>) — receive 403 response</li>
       <li>Users cannot disable or delete their own account</li>
     </ul>
   </div>
@@ -657,6 +737,15 @@ Returns: { "corrected": "Need to check the server logs for errors." }</pre>
       <li>Powered by <strong>Google AI Studio — Gemma 3 12B</strong> (free tier, no cost)</li>
       <li>Fixes grammar, spelling, and sentence structure while preserving all technical terms</li>
       <li>Suggestion is shown as a preview — users choose to Accept or Discard before any change is applied</li>
+    </ul>
+    <h3>Invoice Tracking (Admin)</h3>
+    <ul>
+      <li>Maintain a <strong>Supplier Master</strong> with name, address, and payment terms per supplier</li>
+      <li>Log invoices against suppliers with invoice number, dates, description, amount, status, and accounts remarks</li>
+      <li>Supports <strong>AED and USD</strong> currencies per invoice</li>
+      <li>Outstanding total automatically converts USD to AED using the fixed peg rate (1 USD = 3.6725 AED)</li>
+      <li>Invoice statuses: Pending → Submitted → Approved → Paid / Rejected</li>
+      <li>Filter invoices by supplier or status; outstanding bar always reflects the filtered view</li>
     </ul>
     <h3>Dashboard Analytics</h3>
     <ul>
@@ -885,9 +974,70 @@ npm run dev</pre>
       </tbody>
     </table>
 
+  </div>
+
+  <!-- SECTION 15 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>15</span> Recent Updates — v1.2 (April 2026)</h2>
+
+    <h3>Invoice Tracker &amp; Supplier Master (Admin Only)</h3>
+    <p>Added a dedicated <strong>Invoice Tracker</strong> module accessible only to Admins via a new <strong>Invoices</strong> link in the navigation bar. The module has two tabs: Outstanding Invoices and Supplier Master.</p>
+
+    <h4>Supplier Master</h4>
+    <ul>
+      <li>Maintain a master list of suppliers/vendors with name, address, and payment terms</li>
+      <li>Add, edit, and delete suppliers via an inline sidebar form</li>
+      <li>Deletion is blocked if the supplier has any invoices linked — prevents orphaned records</li>
+    </ul>
+
+    <h4>Invoice Entry</h4>
+    <ul>
+      <li>Log invoices against a supplier with the following fields: Supplier (dropdown from master), Invoice Number, Invoice Date, Submitted to Accounts Date, Invoice Description, Amount with Currency, Status, Remarks from Accounts</li>
+      <li>Invoice statuses: <strong>PENDING → SUBMITTED → APPROVED → PAID / REJECTED</strong></li>
+      <li>Edit and delete any invoice at any time</li>
+      <li>Filter the invoice list by supplier or by status</li>
+    </ul>
+
+    <h4>Multi-Currency Support (AED &amp; USD)</h4>
+    <ul>
+      <li>Each invoice can be entered in <strong>AED</strong> or <strong>USD</strong></li>
+      <li>AED is the UAE Dirham — the primary operating currency</li>
+      <li>USD invoices show a live AED conversion preview inside the entry form</li>
+      <li>The outstanding total bar always displays the <strong>combined AED value</strong>, converting any USD invoices using the fixed peg rate: <strong>1 USD = 3.6725 AED</strong></li>
+      <li>When USD invoices are included in the outstanding total, a rate note is shown: <em>"USD converted @ 3.6725 AED"</em></li>
+      <li>In the invoice table, USD rows show the original USD amount plus the AED equivalent below it</li>
+    </ul>
+
+    <h4>New files added:</h4>
+    <table>
+      <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend/routes/suppliers.js</code></td><td>Admin-only CRUD for supplier master — GET, POST, PATCH, DELETE</td></tr>
+        <tr><td><code>backend/routes/invoices.js</code></td><td>Admin-only CRUD for invoices — GET (with supplier), POST, PATCH, DELETE</td></tr>
+        <tr><td><code>frontend/src/pages/InvoicePage.jsx</code></td><td>Invoice Tracker page — two-tab layout with Outstanding Invoices and Supplier Master</td></tr>
+        <tr><td><code>backend/prisma/migrations/20260407000001_add_suppliers_invoices/</code></td><td>Creates Supplier and Invoice tables, InvoiceStatus enum</td></tr>
+        <tr><td><code>backend/prisma/migrations/20260407000002_add_invoice_currency/</code></td><td>Adds <code>currency</code> column (TEXT, default AED) to Invoice table</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Files modified:</h4>
+    <table>
+      <thead><tr><th>File</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend/prisma/schema.prisma</code></td><td>Added <code>Supplier</code> model, <code>Invoice</code> model, and <code>InvoiceStatus</code> enum</td></tr>
+        <tr><td><code>backend/server.js</code></td><td>Mounted <code>/api/suppliers</code> and <code>/api/invoices</code> routes</td></tr>
+        <tr><td><code>frontend/src/api.js</code></td><td>Added <code>getSuppliers</code>, <code>createSupplier</code>, <code>updateSupplier</code>, <code>deleteSupplier</code>, <code>getInvoices</code>, <code>createInvoice</code>, <code>updateInvoice</code>, <code>deleteInvoice</code> methods</td></tr>
+        <tr><td><code>frontend/src/App.jsx</code></td><td>Added admin-only <code>/invoices</code> route pointing to <code>InvoicePage</code></td></tr>
+        <tr><td><code>frontend/src/components/Navbar.jsx</code></td><td>Added <strong>Invoices</strong> nav link — visible to ADMIN only</td></tr>
+        <tr><td><code>frontend/src/styles/global.css</code></td><td>Added Invoice Tracker styles: tabs, split layout, status badges, currency selector, summary bar, rate note</td></tr>
+      </tbody>
+    </table>
+
+    <div class="warning-box">⚠️ This version adds new database tables. A Docker rebuild is required after pulling: <code>docker-compose down &amp;&amp; git pull &amp;&amp; docker-compose up -d --build</code>. The migrations will apply automatically on container startup.</div>
+
     <hr>
     <p style="text-align:center; color:#888; font-size:9pt; margin-top:32px;">
-      IT Case Manager — Internal Project Documentation &nbsp;|&nbsp; github.com/aivarya/Case_Management &nbsp;|&nbsp; April 2026 — v1.1
+      IT Case Manager — Internal Project Documentation &nbsp;|&nbsp; github.com/aivarya/Case_Management &nbsp;|&nbsp; April 2026 — v1.2
     </p>
   </div>
 
