@@ -49,4 +49,16 @@ export const api = {
   createUser: (data) => request('/users', { method: 'POST', body: JSON.stringify(data) }),
   toggleDisableUser: (id) => request(`/users/${id}/disable`, { method: 'PATCH' }),
   deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
+
+  // Suppliers (admin only)
+  getSuppliers: () => request('/suppliers'),
+  createSupplier: (data) => request('/suppliers', { method: 'POST', body: JSON.stringify(data) }),
+  updateSupplier: (id, data) => request(`/suppliers/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSupplier: (id) => request(`/suppliers/${id}`, { method: 'DELETE' }),
+
+  // Invoices (admin only)
+  getInvoices: () => request('/invoices'),
+  createInvoice: (data) => request('/invoices', { method: 'POST', body: JSON.stringify(data) }),
+  updateInvoice: (id, data) => request(`/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteInvoice: (id) => request(`/invoices/${id}`, { method: 'DELETE' }),
 };

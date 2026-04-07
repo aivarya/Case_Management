@@ -86,3 +86,37 @@ model ActivityLog {
   performedById  Int
   performedBy    User   @relation(fields: [performedById], references: [id])
 }
+
+enum InvoiceStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  PAID
+  REJECTED
+}
+
+model Supplier {
+  id           Int      @id @default(autoincrement())
+  name         String
+  address      String
+  paymentTerms String
+  createdAt    DateTime @default(now())
+
+  invoices     Invoice[]
+}
+
+model Invoice {
+  id                      Int           @id @default(autoincrement())
+  invoiceNumber           String
+  invoiceDate             DateTime
+  submittedToAccountsDate DateTime?
+  description             String
+  amount                  Float
+  status                  InvoiceStatus @default(PENDING)
+  remarksFromAccounts     String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  supplierId  Int
+  supplier    Supplier @relation(fields: [supplierId], references: [id])
+}

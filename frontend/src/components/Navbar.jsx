@@ -87,6 +87,9 @@ export default function Navbar() {
           <NavLink to="/calendar" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Calendar</NavLink>
           <NavLink to="/list" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>List</NavLink>
           {user?.role === 'ADMIN' && (
+            <NavLink to="/invoices" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Invoices</NavLink>
+          )}
+          {user?.role === 'ADMIN' && (
             <NavLink to="/admin" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'} onClick={closeMenu}>Admin</NavLink>
           )}
         </div>

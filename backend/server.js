@@ -9,6 +9,8 @@ const ticketRoutes = require('./routes/tickets');
 const userRoutes = require('./routes/users');
 const commentRoutes = require('./routes/comments');
 const aiRoutes = require('./routes/ai');
+const supplierRoutes = require('./routes/suppliers');
+const invoiceRoutes = require('./routes/invoices');
 
 const prisma = new PrismaClient();
 const app = express();
@@ -45,6 +47,8 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tickets', commentRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 

@@ -8,6 +8,7 @@ import KanbanBoard from './pages/KanbanBoard';
 import CalendarView from './pages/CalendarView';
 import ListView from './pages/ListView';
 import AdminPanel from './pages/AdminPanel';
+import InvoicePage from './pages/InvoicePage';
 
 export const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -70,6 +71,11 @@ export default function App() {
           <Route path="/admin" element={
             <ProtectedRoute adminOnly>
               <Layout><AdminPanel /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/invoices" element={
+            <ProtectedRoute adminOnly>
+              <Layout><InvoicePage /></Layout>
             </ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/" replace />} />

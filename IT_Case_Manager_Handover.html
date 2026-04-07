@@ -240,8 +240,8 @@
   <div class="cover-meta">
     <div><strong>Project:</strong> Internal IT Case Management System</div>
     <div><strong>Repository:</strong> github.com/aivarya/Case_Management</div>
-    <div><strong>Version:</strong> 1.0</div>
-    <div><strong>Date:</strong> March 2026</div>
+    <div><strong>Version:</strong> 1.1</div>
+    <div><strong>Date:</strong> April 2026</div>
     <div><strong>Prepared by:</strong> Sreyas Sambhu</div>
   </div>
   <div class="cover-badge">Confidential — Internal Use Only</div>
@@ -274,7 +274,7 @@
       <li><span>6.</span> Frontend Pages &amp; Components
         <ul class="toc-sub">
           <li>Login, Dashboard, Kanban, Calendar, List View, Admin Panel</li>
-          <li>Navbar, TicketCard, TicketModal, CommentThread</li>
+          <li>Navbar, TicketCard, TicketModal, CommentThread, SmartTextarea</li>
         </ul>
       </li>
       <li><span>7.</span> Authentication &amp; Authorization</li>
@@ -284,6 +284,11 @@
       <li><span>11.</span> Environment Variables</li>
       <li><span>12.</span> Running the App</li>
       <li><span>13.</span> Default Login Credentials</li>
+      <li><span>14.</span> Recent Updates — v1.1
+        <ul class="toc-sub">
+          <li>Gemma AI Writing Assistance, Dashboard Analytics Enhancements</li>
+        </ul>
+      </li>
     </ol>
   </div>
 
@@ -328,6 +333,7 @@
         <tr><td>bcryptjs</td><td>2.4.3</td><td>Password hashing</td></tr>
         <tr><td>express-session</td><td>1.18.0</td><td>Session-based authentication</td></tr>
         <tr><td>CORS</td><td>2.8.5</td><td>Cross-origin request handling</td></tr>
+        <tr><td>@google/generative-ai</td><td>0.21.0</td><td>Google AI Studio SDK for Gemma AI writing assistance</td></tr>
       </tbody>
     </table>
     <h3>Infrastructure</h3>
@@ -364,7 +370,8 @@
 │   │   ├── auth.js             # Login, logout, me, change password
 │   │   ├── tickets.js          # Ticket CRUD operations
 │   │   ├── users.js            # User management (admin)
-│   │   └── comments.js         # Ticket comments
+│   │   ├── comments.js         # Ticket comments
+│   │   └── ai.js               # AI writing assistance (Gemma via Google AI Studio)
 │   └── prisma/
 │       ├── schema.prisma       # Database models definition
 │       └── migrations/         # SQL migration history
@@ -389,7 +396,8 @@
         │   ├── Navbar.jsx
         │   ├── TicketCard.jsx
         │   ├── TicketModal.jsx
-        │   └── CommentThread.jsx
+        │   ├── CommentThread.jsx
+        │   └── SmartTextarea.jsx       # AI-powered textarea with ✨ Improve button
         └── styles/
             └── global.css      # Dark theme global styles</pre>
   </div>
@@ -487,6 +495,18 @@
         <tr><td>DELETE</td><td>/:id</td><td>Admin</td><td>Delete user with cascading data cleanup</td></tr>
       </tbody>
     </table>
+    <h3>AI Writing Assistance — /api/ai</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Access</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>POST</td><td>/correct</td><td>Auth</td><td>Improve text using Gemma AI — returns corrected text preserving technical terms</td></tr>
+      </tbody>
+    </table>
+    <h4>Request / Response</h4>
+    <pre>POST /api/ai/correct
+Body:    { "text": "need to chek the sever logs for erors" }
+Returns: { "corrected": "Need to check the server logs for errors." }</pre>
+    <div class="info-box">The model used is <strong>gemma-3-12b-it</strong> via Google AI Studio (free tier: 14,400 requests/day). Requires <code>GOOGLE_AI_API_KEY</code> in <code>backend/.env</code>.</div>
   </div>
 
   <!-- SECTION 6 -->
@@ -500,8 +520,10 @@
     </ul>
     <h4>Dashboard</h4>
     <ul>
-      <li>Summary cards: Open Tickets, Assigned to Me, Resolved, Critical Open</li>
-      <li>Recently Updated Tickets and Assigned to Me sections</li>
+      <li>Row 1 — KPI summary cards: Open Tickets, Overdue Tickets, Resolved, Critical Open</li>
+      <li>Row 2 — Recently Updated ticket list + Tickets by Priority donut chart and 7-day ticket trend line chart</li>
+      <li>Row 3 — Performance KPIs (all users): Weekly Opened, Weekly Resolved, Monthly Opened, Monthly Resolution Rate %</li>
+      <li>Row 4 — Admin only: Agent Performance bar chart, Weekly Trend line chart (last 4 weeks), Monthly Trend bar chart (last 6 months)</li>
       <li>New Ticket quick-create button</li>
     </ul>
     <h4>Kanban Board</h4>
@@ -552,6 +574,16 @@
     <ul>
       <li>Displays all comments with author and timestamp</li>
       <li>Activity log showing all status change history</li>
+      <li>Comment textarea uses SmartTextarea — AI improve button available</li>
+    </ul>
+    <h4>SmartTextarea</h4>
+    <ul>
+      <li>Reusable textarea component with an integrated <strong>✨ Improve</strong> button</li>
+      <li>On click: sends the current text to <code>POST /api/ai/correct</code> via Google AI Studio (Gemma)</li>
+      <li>Displays a suggestion panel with <strong>Accept</strong> and <strong>Discard</strong> options</li>
+      <li>Shows <em>"No changes suggested"</em> if the AI finds nothing to improve</li>
+      <li>Shows a red error hint if the AI service is unavailable</li>
+      <li>Used in: Description (Create Ticket &amp; Edit Ticket), Resolution, Due Date Change Reason, Comment</li>
     </ul>
   </div>
 
@@ -618,6 +650,20 @@
     <ul>
       <li>Post comments on any ticket</li>
       <li>Automatic activity log records all status changes with timestamp and actor</li>
+    </ul>
+    <h3>AI Writing Assistance</h3>
+    <ul>
+      <li>Every description, resolution, comment, and due-date-reason field has a <strong>✨ Improve</strong> button</li>
+      <li>Powered by <strong>Google AI Studio — Gemma 3 12B</strong> (free tier, no cost)</li>
+      <li>Fixes grammar, spelling, and sentence structure while preserving all technical terms</li>
+      <li>Suggestion is shown as a preview — users choose to Accept or Discard before any change is applied</li>
+    </ul>
+    <h3>Dashboard Analytics</h3>
+    <ul>
+      <li><strong>Performance KPIs (all users):</strong> weekly tickets opened, weekly resolved, monthly tickets opened, monthly resolution rate %</li>
+      <li><strong>Agent Performance chart (Admin only):</strong> grouped bar chart comparing tickets opened vs resolved per agent</li>
+      <li><strong>Weekly Trend chart (Admin only):</strong> line chart showing last 4 weeks opened vs resolved</li>
+      <li><strong>Monthly Trend chart (Admin only):</strong> bar chart showing last 6 months opened vs resolved</li>
     </ul>
   </div>
 
@@ -706,15 +752,18 @@ AGENT  →  sees ONLY tickets assigned to them</div>
     <div class="warning-box">⚠️ This file is excluded from the git repository. It must be created manually on every machine where the app is deployed.</div>
     <pre>DATABASE_URL="postgresql://postgres:secret@localhost:5432/casemgmt"
 SESSION_SECRET="change-this-to-a-random-string"
-PORT=3001</pre>
+PORT=3001
+GOOGLE_AI_API_KEY=your_google_ai_studio_key_here</pre>
     <table>
       <thead><tr><th>Variable</th><th>Description</th></tr></thead>
       <tbody>
         <tr><td>DATABASE_URL</td><td>PostgreSQL connection string. Use <code>db</code> as host when running in Docker</td></tr>
         <tr><td>SESSION_SECRET</td><td>Secret key for signing session cookies — change this in production</td></tr>
         <tr><td>PORT</td><td>Port the backend listens on (default: 3001)</td></tr>
+        <tr><td>GOOGLE_AI_API_KEY</td><td>API key from <strong>Google AI Studio</strong> (aistudio.google.com). Required for the ✨ Improve AI writing feature. Free tier: 14,400 requests/day.</td></tr>
       </tbody>
     </table>
+    <div class="info-box">To get a Google AI Studio API key: go to <strong>aistudio.google.com</strong> → click <strong>Get API Key</strong> → Create API Key. Paste the key into <code>backend/.env</code> on the server. After adding the key, restart the backend container: <code>docker compose restart backend</code></div>
     <h3>Frontend</h3>
     <pre>VITE_API_URL="/api"    # Optional — defaults to /api if not set</pre>
   </div>
@@ -773,9 +822,72 @@ npm run dev</pre>
       </div>
     </div>
     <div class="warning-box">⚠️ Change the admin password immediately after first login. Use the <strong>Password</strong> button in the top navigation bar.</div>
+  </div>
+
+  <!-- SECTION 14 -->
+  <div class="section section-break">
+    <h2 class="section-title"><span>14</span> Recent Updates — v1.1 (April 2026)</h2>
+
+    <h3>Gemma AI Writing Assistance</h3>
+    <p>Added a <strong>✨ Improve</strong> button to all long-text input fields throughout the application. When clicked, the current field text is sent to Google AI Studio (Gemma 3 12B model) which returns a grammar- and spelling-corrected version. The user is shown the suggestion in a preview panel and can Accept or Discard it — the original text is never replaced automatically.</p>
+    <h4>Fields with AI Improve:</h4>
+    <ul>
+      <li>Description — Create Ticket form</li>
+      <li>Description — Edit Ticket modal</li>
+      <li>Resolution — Edit Ticket modal (visible when status = DONE)</li>
+      <li>Due Date Change Reason — Edit Ticket modal (visible when due date is modified)</li>
+      <li>Comment — CommentThread</li>
+    </ul>
+    <h4>New files added:</h4>
+    <table>
+      <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend/routes/ai.js</code></td><td>POST /api/ai/correct — calls Gemma via Google AI Studio SDK</td></tr>
+        <tr><td><code>frontend/src/components/SmartTextarea.jsx</code></td><td>Reusable textarea + Improve button + suggestion panel</td></tr>
+      </tbody>
+    </table>
+    <h4>Files modified:</h4>
+    <table>
+      <thead><tr><th>File</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><code>backend/package.json</code></td><td>Added <code>@google/generative-ai ^0.21.0</code></td></tr>
+        <tr><td><code>backend/server.js</code></td><td>Mounted <code>/api/ai</code> route</td></tr>
+        <tr><td><code>frontend/src/api.js</code></td><td>Added <code>improveText()</code> method</td></tr>
+        <tr><td><code>frontend/src/pages/CreateTicketForm.jsx</code></td><td>Swapped description textarea → SmartTextarea</td></tr>
+        <tr><td><code>frontend/src/components/TicketModal.jsx</code></td><td>Swapped description, resolution, due-date-reason → SmartTextarea</td></tr>
+        <tr><td><code>frontend/src/components/CommentThread.jsx</code></td><td>Swapped comment textarea → SmartTextarea</td></tr>
+        <tr><td><code>frontend/src/styles/global.css</code></td><td>Added SmartTextarea and suggestion panel styles</td></tr>
+        <tr><td><code>backend/.env</code></td><td>Added <code>GOOGLE_AI_API_KEY</code> variable (must be set manually on each server)</td></tr>
+      </tbody>
+    </table>
+    <div class="warning-box">⚠️ Because <code>backend/package.json</code> changed, a full Docker rebuild is required after pulling this version: <code>docker compose down &amp;&amp; docker compose up -d --build</code></div>
+
+    <h3>Dashboard Analytics Enhancements</h3>
+    <p>The Dashboard now includes two new rows of analytics below the existing charts.</p>
+    <h4>Row 3 — Performance KPIs (visible to all users)</h4>
+    <ul>
+      <li><strong>Weekly Tickets Opened</strong> — count of tickets created in the last 7 days</li>
+      <li><strong>Weekly Resolved</strong> — count of tickets moved to DONE in the last 7 days</li>
+      <li><strong>Monthly Tickets Opened</strong> — count of tickets created in the last 30 days</li>
+      <li><strong>Monthly Resolution Rate %</strong> — percentage of last-30-day tickets that were resolved</li>
+    </ul>
+    <h4>Row 4 — Admin-only Charts (3 side-by-side)</h4>
+    <ul>
+      <li><strong>Agent Performance</strong> — grouped bar chart (opened vs resolved per agent)</li>
+      <li><strong>Weekly Trend</strong> — line chart showing opened vs resolved over the last 4 weeks</li>
+      <li><strong>Monthly Trend</strong> — bar chart showing opened vs resolved over the last 6 months</li>
+    </ul>
+    <h4>Files modified:</h4>
+    <table>
+      <thead><tr><th>File</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><td><code>frontend/src/pages/Dashboard.jsx</code></td><td>Added PerformanceKPIs, WeeklyTrend, MonthlyTrend components; updated Row 3 and Row 4 layout</td></tr>
+      </tbody>
+    </table>
+
     <hr>
     <p style="text-align:center; color:#888; font-size:9pt; margin-top:32px;">
-      IT Case Manager — Internal Project Documentation &nbsp;|&nbsp; github.com/aivarya/Case_Management &nbsp;|&nbsp; March 2026
+      IT Case Manager — Internal Project Documentation &nbsp;|&nbsp; github.com/aivarya/Case_Management &nbsp;|&nbsp; April 2026 — v1.1
     </p>
   </div>
 

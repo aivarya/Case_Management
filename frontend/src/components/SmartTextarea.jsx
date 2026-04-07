@@ -44,7 +44,11 @@ export default function SmartTextarea({ value, onChange, placeholder, rows = 3, 
         >
           {loading ? '...' : '✨ Improve'}
         </button>
-        {hint && <span style={{ fontSize: '11px', color: '#666' }}>{hint}</span>}
+        {hint && (
+          <span style={{ fontSize: '11px', color: hint.includes('unavailable') ? '#ef4444' : '#888' }}>
+            {hint}
+          </span>
+        )}
       </div>
       {suggestion && (
         <div className="smart-suggestion">
